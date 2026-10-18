@@ -1,0 +1,61 @@
+<main>
+  <h1>ZeoSorb</h1>
+  <p class="sub">Breakthrough time of refrigerants on zeolite beds (Rosen model) &ndash; calculations from my engineering thesis</p>
+
+  <form (ngSubmit)="calculate()">
+    <label>
+      Refrigerant
+      <select name="refrigerant" [(ngModel)]="refrigerant">
+        @for (r of refrigerants(); track r) {
+          <option [value]="r">{{ r }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Zeolite
+      <select name="zeolite" [(ngModel)]="zeolite">
+        @for (z of zeolites(); track z) {
+          <option [value]="z">{{ z }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Mass flow [kg/h]
+      <input type="number" name="massFlow" [(ngModel)]="massFlow" min="1">
+    </label>
+
+    <label>
+      c/c0
+      <select name="threshold" [(ngModel)]="threshold">
+        <option [ngValue]="0.05">5 %</option>
+        <option [ngValue]="0.024">2.4 %</option>
+      </select>
+    </label>
+
+    <button type="submit" [disabled]="loading()">Calculate</button>
+  </form>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (result(); as r) {
+    <h2>Breakthrough time: {{ fmt(r['tau_s']) }} s ({{ fmt(r['tau_h']) }} h)</h2>
+    <table>
+      <thead>
+        <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
+      </thead>
+      <tbody>
+        @for (row of rows; track row.key) {
+          <tr>
+            <td>{{ row.label }}</td>
+            <td class="num">{{ fmt(r[row.key]) }}</td>
+            <td>{{ row.unit }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</main>

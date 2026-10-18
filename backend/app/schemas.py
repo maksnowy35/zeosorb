@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from .core.constants import BED_HEIGHT, COLUMN_DIAMETER
@@ -11,6 +13,8 @@ class BreakthroughRequest(BaseModel):
     column_diameter: float = Field(COLUMN_DIAMETER, gt=0, le=5, description="m")
     threshold: float = Field(0.05, gt=0, lt=0.5, description="breakthrough criterion c/c0")
     curve_points: int = Field(300, ge=50, le=2000)
+    mode: Literal["corrected", "thesis"] = Field("corrected", description="'thesis' reproduces the thesis tables")
+    tortuosity: float = Field(1.0, ge=1.0, le=10.0)
 
 
 class Curve(BaseModel):
@@ -25,6 +29,9 @@ class BreakthroughResponse(BaseModel):
     hydraulics: dict[str, float]
     film: dict[str, float]
     rosen: dict[str, float]
+    dispersion: dict[str, float]
+    spreading: dict[str, float]
+    film_correlation: str
     t_stoich: float
     t_breakthrough: float
     curve: Curve

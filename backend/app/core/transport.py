@@ -3,6 +3,12 @@ import math
 
 from .constants import K_B, N_A, R_UNIV, SH_A, SH_B, SH_C
 
+ANGSTROM = 1e-10
+# The thesis spreadsheet converted the pore diameter with 1e-8 instead of 1e-10,
+# which made D_K (and therefore D') ~100x too large. Kept only for "thesis" mode
+# so the numbers in Tab. 8-11 can still be reproduced.
+THESIS_PORE_SCALE = 1e-8
+
 
 def gas_density(molar_mass: float, p: float, t: float) -> float:
     """Ideal gas density = equilibrium concentration c* [kg/m3]."""
@@ -18,19 +24,19 @@ def henry_constant(q: float, bulk_density: float, molar_mass: float, c_star: flo
 def molecular_diffusivity(molecule_size_a: float, molar_mass: float, p: float, t: float) -> float:
     """Kinetic theory of gases: D = 2/3 sqrt(kT/(pi m)) kT/(pi d^2 p)  [m2/s]."""
     m = molar_mass / 1000.0 / N_A
-    d = molecule_size_a * 1e-10
+    d = molecule_size_a * ANGSTROM
     return 2.0 / 3.0 * math.sqrt(K_B * t / (math.pi * m)) * K_B * t / (math.pi * d**2 * p)
 
 
-def knudsen_diffusivity(pore_diameter_a: float, molar_mass: float, t: float) -> float:
+def knudsen_diffusivity(pore_diameter_a: float, molar_mass: float, t: float, scale: float = ANGSTROM) -> float:
     """DK = dp/3 * sqrt(8RT/(pi M))  [m2/s]."""
-    dp = pore_diameter_a * 1e-8  # A -> m
+    dp = pore_diameter_a * scale
     return dp / 3.0 * math.sqrt(8.0 * R_UNIV * t / (math.pi * molar_mass))
 
 
-def effective_diffusivity(d_mol: float, d_kn: float) -> float:
-    """Series resistances: 1/D' = 1/D + 1/DK."""
-    return 1.0 / (1.0 / d_mol + 1.0 / d_kn)
+def effective_diffusivity(d_mol: float, d_kn: float, tortuosity: float = 1.0) -> float:
+    """Series resistances 1/D' = 1/D + 1/DK, divided by the pore tortuosity factor."""
+    return 1.0 / (1.0 / d_mol + 1.0 / d_kn) / tortuosity
 
 
 def reynolds(w: float, length: float, rho: float, mu: float) -> float:
@@ -42,9 +48,21 @@ def schmidt(mu: float, d: float, rho: float) -> float:
 
 
 def sherwood(re: float, sc: float) -> float:
+    """Correlation used in the thesis: Sh = C Re^A Sc^B (Paderewski, 'ziarna', Re < 30)."""
     return SH_C * re**SH_A * sc**SH_B
 
 
+def sherwood_wakao_funazkri(re_p: float, sc: float) -> float:
+    """Wakao & Funazkri (1978), packed beds of spheres, Re_p based on superficial velocity and d_p."""
+    return 2.0 + 1.1 * sc ** (1.0 / 3.0) * re_p**0.6
+
+
 def film_coefficient(sh: float, d: float, length: float) -> float:
-    """kc,g = Sh D / dz  [m/s]."""
+    """kc,g = Sh D / L  [m/s]."""
     return sh * d / length
+
+
+def axial_dispersion(d_mol: float, u: float, d_particle: float) -> float:
+    """Edwards & Richardson (1968): D_L = 0.73 Dm + 0.5 u dp / (1 + 9.49 Dm / (u dp)), u interstitial."""
+    ud = u * d_particle
+    return 0.73 * d_mol + 0.5 * ud / (1.0 + 9.49 * d_mol / ud)

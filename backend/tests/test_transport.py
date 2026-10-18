@@ -30,6 +30,22 @@ def test_molecular_diffusivity(key, expected):
     assert d == pytest.approx(expected, rel=0.02)
 
 
+def test_knudsen_r22_4a():
+    # DK = dp/3 sqrt(8RT/(pi M)) with dp = 4 A = 4e-10 m
+    dk = transport.knudsen_diffusivity(4.0, 86.47, T_PROCESS)
+    assert dk == pytest.approx(4.03e-8, rel=0.01)
+
+
+def test_knudsen_thesis_scale_reproduces_tab_8():
+    # thesis Tab. 8: DK(R22, 4A) = 4.0e-6 (pore diameter converted with 1e-8)
+    dk = transport.knudsen_diffusivity(4.0, 86.47, T_PROCESS, scale=transport.THESIS_PORE_SCALE)
+    assert dk == pytest.approx(4.0e-6, rel=0.02)
+
+
+def test_wakao_funazkri_limit():
+    assert transport.sherwood_wakao_funazkri(0.0, 1.0) == pytest.approx(2.0)
+
+
 def test_effective_diffusivity_is_below_both(r22):
     d = transport.molecular_diffusivity(r22.molecule_size, r22.molar_mass, P_PROCESS, T_PROCESS)
     dk = transport.knudsen_diffusivity(4.0, r22.molar_mass, T_PROCESS)

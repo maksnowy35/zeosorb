@@ -41,13 +41,16 @@ def breakthrough(req: BreakthroughRequest):
         bed_height=req.bed_height,
         column_diameter=req.column_diameter,
         thresholds=(req.threshold,),
+        mode=req.mode,
+        tortuosity=req.tortuosity,
     )
     try:
         res = pipeline.run(inp)
     except pipeline.NoAdsorptionData as e:
         raise HTTPException(422, str(e))
 
-    t, c = rosen.curve(*res["_curve_args"], n=req.curve_points)
+    bed = res["bed"]
+    t, c = rosen.curve(bed.lam, bed.psi, bed.d_eff, bed.radius, bed.height, bed.w, n=req.curve_points)
     return BreakthroughResponse(
         request=req,
         equilibrium=res["equilibrium"],
@@ -55,6 +58,9 @@ def breakthrough(req: BreakthroughRequest):
         hydraulics=res["hydraulics"],
         film=res["film"],
         rosen=res["rosen"],
+        dispersion=res["dispersion"],
+        spreading=res["spreading"],
+        film_correlation=res["film_correlation"],
         t_stoich=res["t_stoich"],
         t_breakthrough=res["breakthrough"][f"{req.threshold:g}"],
         curve=Curve(t=t.tolist(), c=c.tolist()),
@@ -67,6 +73,8 @@ def matrix(
     bed_height: float = Query(BED_HEIGHT, gt=0, le=20),
     column_diameter: float = Query(COLUMN_DIAMETER, gt=0, le=5),
     threshold: float = Query(0.05, gt=0, lt=0.5),
+    mode: str = Query("corrected", pattern="^(corrected|thesis)$"),
+    tortuosity: float = Query(1.0, ge=1.0, le=10.0),
 ):
     """Breakthrough time for every refrigerant / zeolite pair (None = no isotherm data)."""
     cells = []
@@ -79,6 +87,8 @@ def matrix(
                 bed_height=bed_height,
                 column_diameter=column_diameter,
                 thresholds=(threshold,),
+                mode=mode,
+                tortuosity=tortuosity,
             )
             try:
                 res = pipeline.run(inp)

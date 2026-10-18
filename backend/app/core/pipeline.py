@@ -25,6 +25,9 @@ class BedInput:
     thresholds: tuple[float, ...] = field(default=(0.024, 0.05))
     mode: Mode = "corrected"
     tortuosity: float = 1.0
+    # m3/s at process conditions; overrides mass_flow / rho (used for blends, where all
+    # components travel with the same gas velocity)
+    volume_flow: float | None = None
 
 
 @dataclass
@@ -99,7 +102,7 @@ def run(inp: BedInput) -> dict:
 
     # hydraulics
     area = math.pi * inp.column_diameter**2 / 4.0
-    v_dot = inp.mass_flow / rho / 3600.0
+    v_dot = inp.volume_flow if inp.volume_flow is not None else inp.mass_flow / rho / 3600.0
     w_k = v_dot / area
     w = w_k / eps
     z = eps / (1.0 - eps)

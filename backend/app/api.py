@@ -159,7 +159,7 @@ def separate(req: SeparationRequest):
         raise HTTPException(422, "pick two different refrigerants")
 
     def evaluate(zeolite: str) -> separation.PairResult:
-        return separation.evaluate(a, b, _bed_input(req, a, zeolite, ()), req.threshold)
+        return separation.evaluate(a, b, _bed_input(req, a, zeolite, ()), req.threshold, req.fraction_a)
 
     try:
         main = evaluate(req.zeolite)

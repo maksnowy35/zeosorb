@@ -77,6 +77,7 @@ class SeparationRequest(BedParams):
     zeolite: str = Field(examples=["4A"])
     refrigerant_a: str = Field(examples=["R32"])
     refrigerant_b: str = Field(examples=["R125"])
+    fraction_a: float = Field(0.5, gt=0, lt=1, description="mass fraction of refrigerant_a in the feed")
 
 
 class SeparationOption(BaseModel):

@@ -83,3 +83,11 @@ def test_sweep_bed_height_linear_capacity():
     body = post("/sweep", refrigerant="R32", zeolite="5A", parameter="bed_height", start=1, stop=4, n=4).json()
     ts = body["t_stoich"]
     assert ts[-1] / ts[0] == pytest.approx(4.0, rel=1e-6)   # t_stoich ~ H
+
+
+def test_separation_uses_blend_velocity():
+    # same gas velocity for both components -> the order follows the Henry constants
+    body = post("/separation", zeolite="5A", refrigerant_a="R32", refrigerant_b="R125", fraction_a=0.5).json()
+    res = body["result"]
+    assert res["weak"] == "R125"
+    assert res["window"] > 0

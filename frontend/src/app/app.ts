@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ApiService } from './api.service';
+import { BreakthroughChart, CurveSeries } from './breakthrough-chart';
 import { BreakthroughResponse } from './models';
 
 interface Row {
@@ -13,7 +14,7 @@ interface Row {
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule],
+  imports: [FormsModule, BreakthroughChart],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
@@ -29,7 +30,9 @@ export class App implements OnInit {
   refrigerant = 'R22';
   zeolite = '4A';
   massFlow = 30;
-  threshold = 0.05;
+  bedHeight = 2.89;
+  columnDiameter = 0.5;
+  thresholdPct = 5;
 
   rows: Row[] = [
     { group: 'equilibrium', key: 'c_star', label: 'c* (gas density)', unit: 'kg/m3' },
@@ -52,6 +55,7 @@ export class App implements OnInit {
     this.api.materials().subscribe(m => {
       this.refrigerants.set(Object.keys(m.refrigerants));
       this.zeolites.set(Object.keys(m.zeolites));
+      this.calculate();
     });
   }
 
@@ -62,9 +66,9 @@ export class App implements OnInit {
       refrigerant: this.refrigerant,
       zeolite: this.zeolite,
       mass_flow: this.massFlow,
-      bed_height: 2.89,
-      column_diameter: 0.5,
-      threshold: this.threshold,
+      bed_height: this.bedHeight,
+      column_diameter: this.columnDiameter,
+      threshold: this.thresholdPct / 100,
     }).subscribe({
       next: res => {
         this.result.set(res);
@@ -76,6 +80,15 @@ export class App implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  series(r: BreakthroughResponse): CurveSeries[] {
+    return [{
+      label: `${r.request.refrigerant} on ${r.request.zeolite}`,
+      t: r.curve.t,
+      c: r.curve.c,
+      color: '#1f77b4',
+    }];
   }
 
   value(r: BreakthroughResponse, row: Row): number {

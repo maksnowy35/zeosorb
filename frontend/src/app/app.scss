@@ -1,6 +1,6 @@
 main {
-  max-width: 760px;
-  margin: 2rem auto;
+  max-width: 1200px;
+  margin: 1.5rem auto;
   padding: 0 1rem;
 }
 
@@ -13,12 +13,21 @@ h1 {
   margin-top: 0.25rem;
 }
 
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 2rem;
+  margin-top: 1.5rem;
+
+  @media (max-width: 800px) {
+    grid-template-columns: 1fr;
+  }
+}
+
 form {
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: flex-end;
-  margin: 1.5rem 0;
+  flex-direction: column;
+  gap: 0.9rem;
 
   label {
     display: flex;
@@ -28,13 +37,12 @@ form {
   }
 
   select,
-  input {
+  input[type='number'] {
     padding: 0.35rem;
-    min-width: 110px;
   }
 
   button {
-    padding: 0.45rem 1.2rem;
+    padding: 0.5rem;
     cursor: pointer;
   }
 }
@@ -43,14 +51,52 @@ form {
   color: #b00020;
 }
 
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.card {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+
+  span {
+    font-size: 0.75rem;
+    color: #666;
+  }
+
+  strong {
+    font-size: 1.3rem;
+  }
+
+  small {
+    color: #888;
+  }
+
+  &.highlight {
+    border-color: #1f77b4;
+    background: #f2f7fc;
+  }
+}
+
+details {
+  margin-top: 1rem;
+}
+
 table {
   border-collapse: collapse;
   width: 100%;
+  margin-top: 0.5rem;
 
   th,
   td {
     border-bottom: 1px solid #ddd;
-    padding: 0.35rem 0.5rem;
+    padding: 0.3rem 0.5rem;
     text-align: left;
   }
 

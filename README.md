@@ -31,6 +31,6 @@ Open http://localhost:4200
 
 ## TODO
 
-- [ ] breakthrough curve plot, not only one time
+- [x] breakthrough curve plot, not only one time
 - [x] move data out of the python file
 - [ ] tests

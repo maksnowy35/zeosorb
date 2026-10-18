@@ -1,0 +1,9 @@
+{
+  "_comment": "Adsorbed amount q [mol/kg] at 0.8 bar read from literature isotherms (thesis Tab. 2). Missing pairs = no data found.",
+  "pressure_bar": 0.8,
+  "data": {
+    "4A": {"R32": 4.8, "R22": 1.65, "R125": 2.65},
+    "5A": {"R32": 4.8, "R22": 1.95, "R134a": 2.25, "R143a": 1.5, "R125": 1.95, "R152a": 2.4},
+    "13X": {"R32": 4.6, "R134a": 2.3, "R143a": 1.5, "R125": 1.8, "R152a": 3.0}
+  }
+}

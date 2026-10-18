@@ -1,0 +1,29 @@
+{
+  "4A": {
+    "name": "Zeolite 4A",
+    "grain_radius": 0.002,
+    "pore_diameter": 4.0,
+    "bed_porosity": 0.633,
+    "bulk_density": 827.9,
+    "channel_diameter": 2.53e-8,
+    "source": "own measurement (thesis ch. 4.1)"
+  },
+  "5A": {
+    "name": "Zeolite 5A",
+    "grain_radius": 0.0025,
+    "pore_diameter": 5.0,
+    "bed_porosity": 0.72,
+    "bulk_density": 650.0,
+    "channel_diameter": 3.61e-8,
+    "source": "literature (thesis ch. 4.2)"
+  },
+  "13X": {
+    "name": "Zeolite 13X",
+    "grain_radius": 0.00375,
+    "pore_diameter": 9.0,
+    "bed_porosity": 0.45,
+    "bulk_density": 1071.2,
+    "channel_diameter": 4.09e-8,
+    "source": "own measurement (thesis ch. 4.3)"
+  }
+}

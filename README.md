@@ -16,7 +16,7 @@ Backend (Python 3.11+):
 ```bash
 cd backend
 pip install -r requirements.txt
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 ```
 
 Frontend (Node 22+):
@@ -32,5 +32,5 @@ Open http://localhost:4200
 ## TODO
 
 - [ ] breakthrough curve plot, not only one time
-- [ ] move data out of the python file
+- [x] move data out of the python file
 - [ ] tests

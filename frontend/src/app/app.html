@@ -42,7 +42,7 @@
   }
 
   @if (result(); as r) {
-    <h2>Breakthrough time: {{ fmt(r['tau_s']) }} s ({{ fmt(r['tau_h']) }} h)</h2>
+    <h2>Breakthrough time: {{ fmt(r.t_breakthrough) }} s ({{ fmt(r.t_breakthrough / 3600) }} h)</h2>
     <table>
       <thead>
         <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
@@ -51,7 +51,7 @@
         @for (row of rows; track row.key) {
           <tr>
             <td>{{ row.label }}</td>
-            <td class="num">{{ fmt(r[row.key]) }}</td>
+            <td class="num">{{ fmt(value(r, row)) }}</td>
             <td>{{ row.unit }}</td>
           </tr>
         }

@@ -1,0 +1,50 @@
+{
+  "R32": {
+    "name": "Difluoromethane",
+    "formula": "CH2F2",
+    "molar_mass": 52.02,
+    "molecule_size": 3.34,
+    "viscosity": 1.67e-5,
+    "gwp_ar4": 675
+  },
+  "R22": {
+    "name": "Chlorodifluoromethane",
+    "formula": "CHClF2",
+    "molar_mass": 86.47,
+    "molecule_size": 4.14,
+    "viscosity": 1.72e-5,
+    "gwp_ar4": 1810
+  },
+  "R134a": {
+    "name": "1,1,1,2-Tetrafluoroethane",
+    "formula": "CF3CH2F",
+    "molar_mass": 102.03,
+    "molecule_size": 4.68,
+    "viscosity": 1.47e-5,
+    "gwp_ar4": 1430
+  },
+  "R143a": {
+    "name": "1,1,1-Trifluoroethane",
+    "formula": "C2H3F3",
+    "molar_mass": 84.04,
+    "molecule_size": 4.40,
+    "viscosity": 1.38e-5,
+    "gwp_ar4": 4470
+  },
+  "R125": {
+    "name": "Pentafluoroethane",
+    "formula": "C2HF5",
+    "molar_mass": 120.02,
+    "molecule_size": 4.68,
+    "viscosity": 1.60e-5,
+    "gwp_ar4": 3500
+  },
+  "R152a": {
+    "name": "1,1-Difluoroethane",
+    "formula": "C2H4F2",
+    "molar_mass": 66.05,
+    "molecule_size": 4.40,
+    "viscosity": 1.39e-5,
+    "gwp_ar4": 124
+  }
+}

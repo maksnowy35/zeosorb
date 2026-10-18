@@ -1,133 +1,25 @@
-<main>
-  <header>
-    <h1>ZeoSorb</h1>
-    <p class="sub">Breakthrough of refrigerants through zeolite beds &ndash; Rosen model, calculations from my engineering thesis</p>
-  </header>
+<header class="top">
+  <a class="brand" routerLink="/">
+    <svg width="34" height="22" viewBox="0 0 34 22" aria-hidden="true">
+      <circle cx="6" cy="11" r="5" class="b1" />
+      <circle cx="17" cy="11" r="5" class="b2" />
+      <circle cx="28" cy="11" r="5" class="b3" />
+    </svg>
+    <span>ZeoSorb</span>
+  </a>
+  <nav aria-label="Main">
+    <a routerLink="/" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }">Simulator</a>
+    <a routerLink="/compare" routerLinkActive="on">Compare beds</a>
+    <a routerLink="/separation" routerLinkActive="on">Separation</a>
+    <a routerLink="/model" routerLinkActive="on">Model and sources</a>
+  </nav>
+</header>
 
-  <div class="layout">
-    <form (ngSubmit)="calculate()">
-      <label>
-        Refrigerant
-        <select name="refrigerant" [(ngModel)]="refrigerant">
-          @for (r of refrigerants(); track r) {
-            <option [value]="r">{{ r }}</option>
-          }
-        </select>
-      </label>
-
-      <label>
-        Zeolite
-        <select name="zeolite" [(ngModel)]="zeolite">
-          @for (z of zeolites(); track z) {
-            <option [value]="z">{{ z }}</option>
-          }
-        </select>
-      </label>
-
-      <label>
-        Mass flow [kg/h]
-        <input type="number" name="massFlow" [(ngModel)]="massFlow" min="1" step="1">
-      </label>
-
-      <label>
-        Bed height H [m]
-        <input type="number" name="bedHeight" [(ngModel)]="bedHeight" min="0.1" step="0.1">
-      </label>
-
-      <label>
-        Column diameter [m]
-        <input type="number" name="columnDiameter" [(ngModel)]="columnDiameter" min="0.05" step="0.05">
-      </label>
-
-      <label>
-        Breakthrough criterion c/c0 = {{ thresholdPct }} %
-        <input type="range" name="thresholdPct" [(ngModel)]="thresholdPct" min="1" max="20" step="0.5">
-      </label>
-
-      <button type="submit" [disabled]="loading()">Calculate</button>
-    </form>
-
-    <section class="results">
-      @if (error()) {
-        <p class="error">{{ error() }}</p>
-      }
-
-      @if (result(); as r) {
-        <div class="cards">
-          <div class="card highlight">
-            <span>t breakthrough</span>
-            <strong>{{ fmt(r.t_breakthrough / 3600) }} h</strong>
-            <small>{{ r.t_breakthrough.toFixed(0) }} s</small>
-          </div>
-          <div class="card">
-            <span>t stoichiometric (c/c0 = 50 %)</span>
-            <strong>{{ fmt(r.t_stoich / 3600) }} h</strong>
-          </div>
-          <div class="card">
-            <span>&lambda;'</span>
-            <strong>{{ fmt(r.rosen['lambda']) }}</strong>
-          </div>
-          <div class="card">
-            <span>&psi;</span>
-            <strong>{{ fmt(r.rosen['psi']) }}</strong>
-          </div>
-        </div>
-
-        <app-breakthrough-chart
-          [series]="series(r)"
-          [threshold]="r.request.threshold"
-          [markerTime]="r.t_breakthrough" />
-
-        @if (matrix(); as m) {
-          <h3>All pairs &ndash; breakthrough time [h]</h3>
-          <p class="hint">Same bed and flow, click a cell to open it. &ldquo;&ndash;&rdquo; = no isotherm data in literature.</p>
-          <table class="matrix">
-            <thead>
-              <tr>
-                <th></th>
-                @for (ref of m.refrigerants; track ref) {
-                  <th>{{ ref }}</th>
-                }
-              </tr>
-            </thead>
-            <tbody>
-              @for (z of m.zeolites; track z) {
-                <tr>
-                  <th>{{ z }}</th>
-                  @for (ref of m.refrigerants; track ref) {
-                    @let t = cell(m, z, ref);
-                    <td
-                      class="num"
-                      [class.selected]="z === r.request.zeolite && ref === r.request.refrigerant"
-                      [class.empty]="t === null"
-                      (click)="t !== null && select(z, ref)">
-                      {{ t === null ? '–' : (t / 3600).toFixed(2) }}
-                    </td>
-                  }
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
-
-        <details>
-          <summary>All intermediate values</summary>
-          <table>
-            <thead>
-              <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
-            </thead>
-            <tbody>
-              @for (row of rows; track row.key) {
-                <tr>
-                  <td>{{ row.label }}</td>
-                  <td class="num">{{ fmt(value(r, row)) }}</td>
-                  <td>{{ row.unit }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </details>
-      }
-    </section>
-  </div>
+<main class="page">
+  <router-outlet />
 </main>
+
+<footer>
+  Built on my engineering thesis, &bdquo;Analiza procesu adsorpcji czynników chłodniczych na wybranych złożach
+  sorpcyjnych&rdquo;, Politechnika Warszawska, MEiL. Version {{ version }}.
+</footer>

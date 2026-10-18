@@ -1,0 +1,84 @@
+<header class="intro">
+  <h1>Which bed holds which refrigerant</h1>
+  <p>Every pair with isotherm data, same column (H = 2.89 m, D = 0.5 m) and feed. Pick a cell to open it in the simulator.</p>
+</header>
+
+<div class="toolbar">
+  <div class="segmented" role="group" aria-label="Value shown in the cells">
+    @for (k of metricKeys; track k) {
+      <button type="button" [class.on]="metric() === k" (click)="metric.set(k)">{{ metrics[k].label }}</button>
+    }
+  </div>
+  <label class="slider">
+    <span>Mass flow <b>{{ massFlow() }} kg/h</b></span>
+    <input type="range" min="5" max="200" step="1" [value]="massFlow()" (input)="set(massFlow, $event)">
+  </label>
+  <label class="slider">
+    <span>Breakthrough at <b>{{ thresholdPct() }} %</b></span>
+    <input type="range" min="1" max="20" step="0.5" [value]="thresholdPct()" (input)="set(thresholdPct, $event)">
+  </label>
+  <div class="segmented" role="group" aria-label="Calculation mode">
+    <button type="button" [class.on]="mode() === 'corrected'" (click)="mode.set('corrected')">Corrected</button>
+    <button type="button" [class.on]="mode() === 'thesis'" (click)="mode.set('thesis')">As in the thesis</button>
+  </div>
+</div>
+
+<p class="note">{{ metrics[metric()].explain }}</p>
+
+@if (matrix(); as m) {
+  <div class="grid" role="table" [style.--cols]="m.refrigerants.length">
+    <div role="row" class="row head">
+      <span role="columnheader"></span>
+      @for (r of m.refrigerants; track r) {
+        <span role="columnheader" class="ref">
+          <span class="dot" [style.background]="refColor(r)"></span>{{ r }}
+          @if (materials()?.refrigerants?.[r]; as info) {
+            <small>{{ info.molecule_size }} Å</small>
+          }
+        </span>
+      }
+    </div>
+    @for (z of m.zeolites; track z) {
+      <div role="row" class="row">
+        <span role="rowheader" class="zeo">
+          {{ z }}
+          @if (materials()?.zeolites?.[z]; as info) {
+            <small>pores {{ info.pore_diameter }} Å</small>
+          }
+        </span>
+        @for (r of m.refrigerants; track r) {
+          @let c = cell(z, r);
+          @if (c && c[metric()] !== null) {
+            <button role="cell" type="button" class="cell"
+                    [style.background]="background(c[metric()]!)" [class.dark]="dark(c[metric()]!)"
+                    (click)="open(c)" [attr.aria-label]="r + ' on ' + z + ': ' + format(c)">
+              {{ format(c) }}
+            </button>
+          } @else {
+            <span role="cell" class="cell empty" [attr.aria-label]="r + ' on ' + z + ': no isotherm data'">no data</span>
+          }
+        }
+      </div>
+    }
+  </div>
+
+  @if (ranked(); as rk) {
+    <p class="summary">
+      @if (metric() === 't_breakthrough') {
+        Longest hold: {{ rk.best.refrigerant }} on {{ rk.best.zeolite }}, {{ duration(rk.best.t_breakthrough) }}.
+        Shortest: {{ rk.worst.refrigerant }} on {{ rk.worst.zeolite }}, {{ duration(rk.worst.t_breakthrough) }}.
+        Held longest on each bed:
+        @for (b of rk.perBed; track b.zeolite; let last = $last) {
+          {{ b.zeolite }} &ndash; {{ b.refrigerant }}{{ last ? '.' : ',' }}
+        }
+      } @else if (metric() === 'Ka') {
+        Strongest affinity: {{ rk.best.refrigerant }} on {{ rk.best.zeolite }}. Weakest: {{ rk.worst.refrigerant }} on {{ rk.worst.zeolite }}.
+      } @else {
+        Sharpest front: {{ rk.best.refrigerant }} on {{ rk.best.zeolite }}. Widest: {{ rk.worst.refrigerant }} on {{ rk.worst.zeolite }}.
+        Small pores mean slow diffusion and a wide front.
+      }
+    </p>
+  }
+} @else {
+  <p class="note">Loading the matrix. If this stays empty, check that the API is running on port 8000.</p>
+}

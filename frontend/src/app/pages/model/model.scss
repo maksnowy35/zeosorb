@@ -1,0 +1,90 @@
+article {
+  max-width: 78ch;
+}
+
+h1 {
+  font-size: clamp(1.6rem, 2.6vw, 2.3rem);
+  font-weight: 500;
+}
+
+.lead {
+  font-size: 1.1rem;
+}
+
+section {
+  margin-top: 2.2rem;
+}
+
+h3 {
+  font-size: 1.1rem;
+  margin: 0 0 0.2rem;
+}
+
+.chain {
+  padding-left: 1.4rem;
+
+  li {
+    margin-bottom: 1.3rem;
+    padding-left: 0.4rem;
+
+    &::marker {
+      font-family: var(--font-display);
+      font-weight: 700;
+      color: var(--steel);
+    }
+  }
+
+  p {
+    margin: 0.2rem 0;
+  }
+}
+
+.eq {
+  background: var(--panel);
+  border-left: 3px solid var(--ochre);
+  padding: 0.45rem 0.8rem;
+  font-size: 1.05rem;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+var {
+  font-style: italic;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8rem 0;
+  font-size: 0.95rem;
+
+  th,
+  td {
+    text-align: left;
+    vertical-align: top;
+    padding: 0.45rem 0.5rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  thead th {
+    font-family: var(--font-display);
+  }
+
+  tbody th {
+    font-weight: 600;
+    width: 12rem;
+  }
+}
+
+ul {
+  padding-left: 1.2rem;
+
+  li {
+    margin-bottom: 0.4rem;
+  }
+}
+
+.refs {
+  font-size: 0.92rem;
+  color: var(--steel);
+}

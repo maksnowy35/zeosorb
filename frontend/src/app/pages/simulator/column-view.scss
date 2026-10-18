@@ -1,0 +1,134 @@
+:host {
+  display: block;
+}
+
+.column {
+  margin: 0;
+}
+
+svg {
+  width: 100%;
+  max-width: 260px;
+  display: block;
+  margin: 0 auto;
+  font-family: var(--font);
+}
+
+.bead {
+  fill: none;
+  stroke: var(--ink);
+  stroke-opacity: 0.16;
+  stroke-width: 0.8;
+}
+
+.vessel-fill {
+  fill: #e4e9e6;
+}
+
+.vessel {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.pipe {
+  fill: #e4e9e6;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.arrow {
+  fill: var(--ink);
+}
+
+.tick,
+.axis {
+  stroke: var(--steel);
+  stroke-width: 1;
+}
+
+.faint {
+  stroke-opacity: 0.3;
+  stroke-dasharray: 3 3;
+}
+
+.label {
+  font-size: 11px;
+  fill: var(--steel);
+}
+
+.front {
+  stroke: var(--signal);
+  stroke-width: 1.5;
+}
+
+.front-label {
+  font-size: 11px;
+  fill: var(--signal);
+  font-weight: 600;
+}
+
+.profile {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+
+  &.solid {
+    stroke-dasharray: 4 3;
+  }
+}
+
+.outlet {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.controls {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: 0.5rem;
+
+  input {
+    flex: 1;
+  }
+
+  button {
+    min-width: 4.5rem;
+  }
+}
+
+.now {
+  margin: 0.4rem 0 0.2rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.legend {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--steel);
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+  }
+
+  .line {
+    width: 16px;
+    height: 2px;
+  }
+}

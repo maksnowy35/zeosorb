@@ -1,0 +1,116 @@
+<header class="intro">
+  <h1>Splitting a blend on one bed</h1>
+  <p>
+    Both refrigerants travel with the same gas, so the one the zeolite holds more weakly leaves the column first. Between the
+    moment it is fully through and the moment the other one breaks through, the outlet carries the weak one alone.
+    That window is what a separation cycle can use.
+  </p>
+</header>
+
+<div class="layout">
+  <aside class="controls">
+    <fieldset>
+      <legend>Blend</legend>
+      <div class="chips">
+        @for (p of presets; track p.label) {
+          <button type="button" class="chip" [class.on]="isPreset(p)" (click)="usePreset(p)" [title]="p.why">{{ p.label }}</button>
+        }
+      </div>
+      <div class="pair">
+        <select aria-label="First refrigerant" [value]="a()" (change)="setA($event)">
+          @for (r of refrigerantKeys(); track r) {
+            <option [value]="r" [selected]="r === a()">{{ r }}</option>
+          }
+        </select>
+        <span>and</span>
+        <select aria-label="Second refrigerant" [value]="b()" (change)="setB($event)">
+          @for (r of refrigerantKeys(); track r) {
+            <option [value]="r" [selected]="r === b()">{{ r }}</option>
+          }
+        </select>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Zeolite</legend>
+      <div class="chips">
+        @for (z of beds(); track z.key) {
+          <button type="button" class="chip" [class.on]="z.key === zeolite()" [disabled]="!z.ok"
+                  [title]="z.ok ? '' : 'No isotherm data for both refrigerants'" (click)="zeolite.set(z.key)">{{ z.key }}</button>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Feed and column</legend>
+      <label class="slider">
+        <span>{{ a() }} in the feed <b>{{ fractionPct() }} % by mass</b></span>
+        <input type="range" min="1" max="99" step="1" [value]="fractionPct()" (input)="set(fractionPct, $event)">
+      </label>
+      <label class="slider">
+        <span>Blend mass flow <b>{{ massFlow() }} kg/h</b></span>
+        <input type="range" min="5" max="200" step="1" [value]="massFlow()" (input)="set(massFlow, $event)">
+      </label>
+      <label class="slider">
+        <span>Bed height <b>{{ bedHeight().toFixed(2) }} m</b></span>
+        <input type="range" min="0.5" max="5" step="0.01" [value]="bedHeight()" (input)="set(bedHeight, $event)">
+      </label>
+      <label class="slider">
+        <span>Strong one may reach <b>{{ thresholdPct() }} %</b></span>
+        <input type="range" min="1" max="20" step="0.5" [value]="thresholdPct()" (input)="set(thresholdPct, $event)">
+      </label>
+      <div class="segmented" role="group" aria-label="Calculation mode">
+        <button type="button" [class.on]="mode() === 'corrected'" (click)="mode.set('corrected')">Corrected</button>
+        <button type="button" [class.on]="mode() === 'thesis'" (click)="mode.set('thesis')">As in the thesis</button>
+      </div>
+    </fieldset>
+  </aside>
+
+  <section class="main">
+    @if (state(); as s) {
+      @if (!s.ok) {
+        <p class="error" role="alert">{{ s.message }}</p>
+      }
+    }
+
+    @if (data(); as d) {
+      <p class="verdict" aria-live="polite">
+        @if (d.result.window > 0) {
+          On zeolite {{ d.result.zeolite }}, <span [style.color]="refColor(d.result.weak)">{{ d.result.weak }}</span> comes out first.
+          For <strong>{{ duration(d.result.window) }}</strong> the outlet carries {{ d.result.weak }} alone,
+          then <span [style.color]="refColor(d.result.strong)">{{ d.result.strong }}</span> breaks through.
+        } @else {
+          On zeolite {{ d.result.zeolite }} the fronts overlap by <strong>{{ duration(-d.result.window) }}</strong>:
+          {{ d.result.strong }} breaks through before {{ d.result.weak }} is fully out. A longer bed or a lower flow helps.
+        }
+      </p>
+      <p class="sub">
+        Selectivity from the Henry constants &alpha; = {{ num(d.result.alpha) }}.
+        {{ d.result.weak }} is fully through after {{ duration(d.result.t_weak_full) }},
+        {{ d.result.strong }} reaches {{ thresholdPct() }} % after {{ duration(d.result.t_strong_break) }}.
+      </p>
+
+      <app-line-chart [series]="series()" [band]="band()" [markers]="markers()" [height]="320"
+                      ariaLabel="Breakthrough curves of both refrigerants" />
+
+      <h2>Every bed for this pair</h2>
+      <ol class="ranking">
+        @for (o of d.ranking; track o.zeolite) {
+          <li [class.current]="o.zeolite === d.result.zeolite">
+            <span class="name">{{ o.zeolite }}</span>
+            <span class="track">
+              <span class="fill" [style.width.%]="100 * Math.abs(o.window) / maxWindow()" [style.background]="barColor(o.window)"></span>
+            </span>
+            <span class="value">{{ o.window > 0 ? duration(o.window) + ' clean' : duration(-o.window) + ' overlap' }}</span>
+            <span class="alpha">&alpha; {{ num(o.alpha) }}</span>
+          </li>
+        }
+      </ol>
+
+      <p class="note">
+        These are two single-component curves laid over each other. In a real blend both refrigerants compete for the same sites,
+        and the weaker one usually overshoots c/c₀ = 1 for a while (roll-up). Treat the window as an optimistic first estimate.
+      </p>
+    }
+  </section>
+</div>

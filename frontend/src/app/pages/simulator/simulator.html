@@ -1,0 +1,187 @@
+<div class="sim">
+  <aside class="controls" aria-label="Simulation inputs">
+    @if (materials(); as m) {
+      <fieldset>
+        <legend>Refrigerant</legend>
+        <div class="chips">
+          @for (r of m.refrigerants | keyvalue: keep; track r.key) {
+            <button type="button" class="chip" [class.on]="r.key === refrigerant()"
+                    [attr.aria-pressed]="r.key === refrigerant()" (click)="selectRefrigerant(r.key)"
+                    [title]="r.value.name + ', ' + r.value.formula">
+              <span class="dot" [style.background]="refColor(r.key)"></span>{{ r.key }}
+            </button>
+          }
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Zeolite</legend>
+        <div class="chips">
+          @for (z of m.zeolites | keyvalue: keep; track z.key) {
+            <button type="button" class="chip" [class.on]="z.key === zeolite()"
+                    [attr.aria-pressed]="z.key === zeolite()" [disabled]="!available()[z.key]"
+                    (click)="zeolite.set(z.key)"
+                    [title]="available()[z.key] ? z.value.name + ', pores ' + z.value.pore_diameter + ' Å' : 'No isotherm data for ' + refrigerant() + ' on ' + z.key">
+              {{ z.key }}
+            </button>
+          }
+        </div>
+      </fieldset>
+    }
+
+    <fieldset>
+      <legend>Bed and flow</legend>
+      <label class="slider">
+        <span>Mass flow <b>{{ massFlow() }} kg/h</b></span>
+        <input type="range" min="5" max="200" step="1" [value]="massFlow()" (input)="set(massFlow, $event)">
+      </label>
+      <label class="slider">
+        <span>Bed height <b>{{ bedHeight().toFixed(2) }} m</b></span>
+        <input type="range" min="0.5" max="5" step="0.01" [value]="bedHeight()" (input)="set(bedHeight, $event)">
+      </label>
+      <label class="slider">
+        <span>Column diameter <b>{{ columnDiameter().toFixed(2) }} m</b></span>
+        <input type="range" min="0.2" max="1" step="0.01" [value]="columnDiameter()" (input)="set(columnDiameter, $event)">
+      </label>
+      <label class="slider">
+        <span>Breakthrough at <b>c/c₀ = {{ thresholdPct() }} %</b></span>
+        <input type="range" min="1" max="20" step="0.5" [value]="thresholdPct()" (input)="set(thresholdPct, $event)">
+      </label>
+      <label class="slider">
+        <span>Pore tortuosity <b>{{ tortuosity().toFixed(1) }}</b></span>
+        <input type="range" min="1" max="6" step="0.1" [value]="tortuosity()" (input)="set(tortuosity, $event)">
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Model</legend>
+      <div class="segmented" role="group" aria-label="Column model">
+        <button type="button" [class.on]="model() === 'rosen'" (click)="model.set('rosen')">Rosen</button>
+        <button type="button" [class.on]="model() === 'ldf'" (click)="model.set('ldf')">LDF</button>
+        <button type="button" [class.on]="model() === 'both'" (click)="model.set('both')">Both</button>
+      </div>
+      <div class="segmented" role="group" aria-label="Calculation mode">
+        <button type="button" [class.on]="mode() === 'corrected'" (click)="mode.set('corrected')">Corrected</button>
+        <button type="button" [class.on]="mode() === 'thesis'" (click)="mode.set('thesis')">As in the thesis</button>
+      </div>
+      <p class="note">
+        @if (mode() === 'thesis') {
+          Reproduces the thesis tables, including the Knudsen unit slip and the channel-diameter film correlation.
+        } @else {
+          Knudsen diffusion with pores in Å and a packed-bed film correlation (Wakao–Funazkri).
+        }
+      </p>
+    </fieldset>
+  </aside>
+
+  <section class="main" [class.busy]="loading()">
+    @if (error(); as e) {
+      <p class="error" role="alert">{{ e }}</p>
+    }
+
+    @if (data(); as d) {
+      <header class="readout" aria-live="polite">
+        <h1>
+          <span [style.color]="refColor(d.request.refrigerant)">{{ d.request.refrigerant }}</span>
+          on zeolite {{ d.request.zeolite }} reaches {{ pct(d.request.threshold, d.request.threshold < 0.1 ? 1 : 0) }}
+          at the outlet after {{ duration(d.t_breakthrough.rosen) }}
+        </h1>
+        <p>
+          @if (d.t_breakthrough.ldf !== null) {
+            The numerical model with axial dispersion says {{ duration(d.t_breakthrough.ldf) }}.
+          }
+          Half of the feed comes through after {{ duration(d.t_stoich) }}, which is the bed capacity divided by the feed.
+          @if (loading()) {
+            <span class="busy-note">Recalculating</span>
+          }
+        </p>
+      </header>
+
+      <app-line-chart
+        [series]="series()"
+        [markers]="markers()"
+        [cursor]="cursor()"
+        [height]="330"
+        ariaLabel="Breakthrough curve, outlet concentration against time" />
+
+      <div class="budget">
+        <p>
+          The front spreads over &plusmn;{{ pct(d.spreading['sigma_rel'], 1) }} of the stoichiometric time.
+          @if (d.spreading['mass_transfer_share'] > 0.5) {
+            Mostly diffusion into the grains, so Rosen describes it well.
+          } @else {
+            Mostly axial dispersion, which Rosen ignores, so trust the numerical curve here.
+          }
+        </p>
+        <div class="bar" role="img"
+             [attr.aria-label]="'Diffusion into grains ' + pct(d.spreading['mass_transfer_share']) + ', axial dispersion ' + pct(1 - d.spreading['mass_transfer_share'])">
+          <span class="mt" [style.flex-grow]="d.spreading['mass_transfer_share']">
+            diffusion into grains {{ pct(d.spreading['mass_transfer_share']) }}
+          </span>
+          <span class="ax" [style.flex-grow]="1 - d.spreading['mass_transfer_share']">
+            axial dispersion {{ pct(1 - d.spreading['mass_transfer_share']) }}
+          </span>
+        </div>
+      </div>
+
+      <section class="sweep">
+        <h2>Sensitivity</h2>
+        <div class="segmented wrap" role="group" aria-label="Parameter to vary">
+          @for (k of sweepKeys; track k) {
+            <button type="button" [class.on]="sweepParam() === k" (click)="sweepParam.set(k)">{{ sweeps[k].label }}</button>
+          }
+        </div>
+        <app-line-chart
+          [series]="sweepSeries()"
+          [markers]="sweepMarker()"
+          [xLabel]="sweeps[sweepParam()].label + ' [' + sweeps[sweepParam()].unit + ']'"
+          yLabel="t [h]"
+          [yMax]="undefined"
+          [height]="240"
+          ariaLabel="Breakthrough time against the selected parameter" />
+      </section>
+
+      <details class="numbers">
+        <summary>Every intermediate value</summary>
+        @for (g of details(); track g.group) {
+          <table>
+            <caption>{{ g.group }}</caption>
+            <tbody>
+              @for (row of g.rows; track row.symbol) {
+                <tr>
+                  <th scope="row">{{ row.label }}</th>
+                  <td class="sym">{{ row.symbol }}</td>
+                  <td class="val">{{ num(row.value) }}</td>
+                  <td class="unit">{{ row.unit }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+        <p class="note">Film coefficient: {{ d.film_correlation }}.</p>
+        @if (d.solver; as s) {
+          <p class="note">
+            LDF solver: {{ s.n_cells }} cells, {{ s.n_rhs }} right-hand side evaluations,
+            {{ s.runtime_ms.toFixed(0) }} ms, St = {{ num(s.stanton) }}, Pe = {{ num(s.peclet) }}.
+          </p>
+        }
+        <button type="button" (click)="exportCsv()">Download curves as CSV</button>
+      </details>
+    } @else if (!error()) {
+      <p class="placeholder">Calculating the first curve</p>
+    }
+  </section>
+
+  <aside class="bed" aria-label="State of the bed">
+    @if (data()?.profiles; as p) {
+      <h2>Inside the column</h2>
+      <app-column-view
+        [profiles]="p"
+        [bedHeight]="data()!.request.bed_height"
+        [color]="refColor(data()!.request.refrigerant)"
+        [(frame)]="frame" />
+    } @else if (data()) {
+      <p class="note">Switch the model to LDF or Both to see how the bed loads up.</p>
+    }
+  </aside>
+</div>

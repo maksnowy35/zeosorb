@@ -52,6 +52,13 @@
               }
             ],
             "styles": [
+              "@fontsource/barlow/400.css",
+              "@fontsource/barlow/400-italic.css",
+              "@fontsource/barlow/500.css",
+              "@fontsource/barlow/600.css",
+              "@fontsource/barlow-semi-condensed/500.css",
+              "@fontsource/barlow-semi-condensed/600.css",
+              "@fontsource/barlow-semi-condensed/700.css",
               "src/styles.scss"
             ]
           },
@@ -60,13 +67,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
+                  "maximumWarning": "600kB",
                   "maximumError": "1MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "8kB",
+                  "maximumError": "16kB"
                 }
               ],
               "outputHashing": "all"

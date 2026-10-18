@@ -1,0 +1,170 @@
+.sim {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr) 270px;
+  gap: 2.2rem;
+  align-items: start;
+
+  @media (max-width: 1180px) {
+    grid-template-columns: 250px minmax(0, 1fr);
+
+    .bed {
+      grid-column: 2;
+      grid-row: 2;
+    }
+  }
+
+  @media (max-width: 760px) {
+    grid-template-columns: 1fr;
+
+    .bed {
+      grid-column: 1;
+      grid-row: auto;
+    }
+  }
+}
+
+.controls .segmented button {
+  font-size: 0.9rem;
+}
+
+.main {
+  min-width: 0;
+  transition: opacity 0.2s;
+
+  &.busy {
+    opacity: 0.75;
+  }
+}
+
+.readout {
+  margin-bottom: 1rem;
+
+  h1 {
+    font-size: clamp(1.6rem, 2.6vw, 2.3rem);
+    font-weight: 500;
+    max-width: 30ch;
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    color: var(--steel);
+    max-width: 70ch;
+    margin: 0;
+  }
+}
+
+.busy-note {
+  margin-left: 0.4rem;
+  font-style: italic;
+}
+
+.budget {
+  margin: 1.2rem 0 2rem;
+
+  p {
+    margin: 0 0 0.4rem;
+    max-width: 75ch;
+  }
+
+  .bar {
+    display: flex;
+    height: 26px;
+    font-size: 0.8rem;
+    border-radius: var(--radius);
+    overflow: hidden;
+
+    span {
+      flex-basis: 0;
+      min-width: 2px;
+      display: flex;
+      align-items: center;
+      padding: 0 0.5rem;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .mt {
+      background: var(--ochre);
+      color: var(--ink);
+    }
+
+    .ax {
+      background: var(--frost);
+      color: #fff;
+    }
+  }
+}
+
+.sweep {
+  margin-bottom: 2rem;
+
+  .segmented button {
+    font-size: 0.85rem;
+  }
+}
+
+.numbers {
+  border-top: 1px solid var(--rule);
+  padding-top: 0.8rem;
+
+  summary {
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8rem 0;
+    font-size: 0.92rem;
+  }
+
+  caption {
+    text-align: left;
+    font-weight: 600;
+    padding-bottom: 0.2rem;
+  }
+
+  th,
+  td {
+    padding: 0.25rem 0.4rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  th {
+    text-align: left;
+    font-weight: 400;
+  }
+
+  .sym {
+    font-style: italic;
+    color: var(--steel);
+    width: 4.5rem;
+  }
+
+  .val {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    width: 7.5rem;
+  }
+
+  .unit {
+    color: var(--steel);
+    width: 4.5rem;
+  }
+}
+
+.bed {
+  position: sticky;
+  top: 1rem;
+
+  h2 {
+    margin-bottom: 0.2rem;
+  }
+}
+
+.placeholder {
+  color: var(--steel);
+}

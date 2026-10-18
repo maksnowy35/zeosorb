@@ -1,0 +1,74 @@
+<figure class="column">
+  <svg viewBox="0 0 250 530" role="img"
+       [attr.aria-label]="'Bed state at t = ' + duration(time()) + ', ' + (loadedShare() * 100).toFixed(0) + ' % of the bed loaded'">
+    <defs>
+      <pattern id="beads" width="10" height="9" patternUnits="userSpaceOnUse">
+        <circle cx="5" cy="4.5" r="4" class="bead" />
+      </pattern>
+      <pattern id="beads-offset" width="10" height="18" patternUnits="userSpaceOnUse" x="5">
+        <circle cx="5" cy="13.5" r="4" class="bead" />
+      </pattern>
+      <clipPath id="bed-clip">
+        <rect [attr.x]="geo.LEFT" [attr.y]="geo.TOP" [attr.width]="geo.RIGHT - geo.LEFT" [attr.height]="geo.BOTTOM - geo.TOP" />
+      </clipPath>
+    </defs>
+
+    <!-- feed and outlet pipes -->
+    <rect x="92" y="10" width="14" height="34" class="pipe" />
+    <path d="M99 30 l-5 -8 h10 z" class="arrow" />
+    <text x="112" y="24" class="label">feed, c₀</text>
+    <rect x="92" y="478" width="14" height="30" class="pipe" />
+    <path d="M99 506 l-5 -8 h10 z" class="arrow" />
+
+    <!-- vessel -->
+    <path class="vessel-fill"
+          [attr.d]="'M58,64 C58,38 138,38 138,64 L138,456 C138,482 58,482 58,456 Z'" />
+    <g clip-path="url(#bed-clip)">
+      @for (s of slices(); track $index) {
+        <rect [attr.x]="geo.LEFT" [attr.y]="s.y" [attr.width]="geo.RIGHT - geo.LEFT" [attr.height]="s.h"
+              [attr.fill]="ochre" [attr.fill-opacity]="0.12 + 0.78 * s.q" />
+      }
+      <rect [attr.x]="geo.LEFT" [attr.y]="geo.TOP" [attr.width]="geo.RIGHT - geo.LEFT" [attr.height]="geo.BOTTOM - geo.TOP" fill="url(#beads)" />
+      <rect [attr.x]="geo.LEFT" [attr.y]="geo.TOP" [attr.width]="geo.RIGHT - geo.LEFT" [attr.height]="geo.BOTTOM - geo.TOP" fill="url(#beads-offset)" />
+    </g>
+    <path class="vessel"
+          [attr.d]="'M58,64 C58,38 138,38 138,64 L138,456 C138,482 58,482 58,456 Z'" />
+
+    <!-- depth ticks -->
+    @for (t of ticks(); track t.y) {
+      <line [attr.x1]="geo.LEFT - 6" [attr.x2]="geo.LEFT" [attr.y1]="t.y" [attr.y2]="t.y" class="tick" />
+      <text [attr.x]="geo.LEFT - 9" [attr.y]="t.y + 4" class="label" text-anchor="end">{{ t.label }}</text>
+    }
+
+    <!-- mass transfer zone -->
+    @if (front(); as f) {
+      <line [attr.x1]="geo.LEFT - 4" [attr.x2]="geo.RIGHT + 4" [attr.y1]="f.y" [attr.y2]="f.y" class="front" />
+      <text [attr.x]="geo.RIGHT + 3" [attr.y]="f.y - 5" class="front-label" text-anchor="end">front</text>
+    }
+
+    <!-- profiles along the bed -->
+    <line [attr.x1]="geo.PLOT_LEFT" [attr.x2]="geo.PLOT_LEFT" [attr.y1]="geo.TOP" [attr.y2]="geo.BOTTOM" class="axis" />
+    <line [attr.x1]="geo.PLOT_RIGHT" [attr.x2]="geo.PLOT_RIGHT" [attr.y1]="geo.TOP" [attr.y2]="geo.BOTTOM" class="axis faint" />
+    <text [attr.x]="geo.PLOT_LEFT" [attr.y]="geo.TOP - 8" class="label">0</text>
+    <text [attr.x]="geo.PLOT_RIGHT" [attr.y]="geo.TOP - 8" class="label" text-anchor="end">1</text>
+    <polyline [attr.points]="solidLine()" class="profile solid" [attr.stroke]="ochre" />
+    <polyline [attr.points]="gasLine()" class="profile" [attr.stroke]="color()" />
+
+    <text x="99" y="525" class="outlet" text-anchor="middle">outlet c/c₀ = {{ outlet().toFixed(3) }}</text>
+  </svg>
+
+  <figcaption>
+    <div class="controls">
+      <button type="button" (click)="toggle()" [attr.aria-pressed]="playing()">
+        {{ playing() ? 'Pause' : 'Play' }}
+      </button>
+      <input type="range" min="0" [max]="nFrames() - 1" [value]="safeFrame()" (input)="scrub($event)"
+             aria-label="Time in the simulation">
+    </div>
+    <p class="now">t = {{ duration(time()) }} &middot; bed {{ (loadedShare() * 100).toFixed(0) }} % loaded</p>
+    <ul class="legend">
+      <li><span class="swatch" [style.background]="ochre"></span>adsorbed, q/q*</li>
+      <li><span class="line" [style.background]="color()"></span>in the gas, c/c₀</li>
+    </ul>
+  </figcaption>
+</figure>

@@ -1,9 +1,10 @@
 from dataclasses import asdict
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from . import __version__
 from .core import materials, pipeline, rosen
+from .core.constants import BED_HEIGHT, COLUMN_DIAMETER
 from .schemas import BreakthroughRequest, BreakthroughResponse, Curve
 
 router = APIRouter()
@@ -58,3 +59,40 @@ def breakthrough(req: BreakthroughRequest):
         t_breakthrough=res["breakthrough"][f"{req.threshold:g}"],
         curve=Curve(t=t.tolist(), c=c.tolist()),
     )
+
+
+@router.get("/matrix")
+def matrix(
+    mass_flow: float = Query(30.0, gt=0, le=1000),
+    bed_height: float = Query(BED_HEIGHT, gt=0, le=20),
+    column_diameter: float = Query(COLUMN_DIAMETER, gt=0, le=5),
+    threshold: float = Query(0.05, gt=0, lt=0.5),
+):
+    """Breakthrough time for every refrigerant / zeolite pair (None = no isotherm data)."""
+    cells = []
+    for z in materials.zeolites():
+        for r in materials.refrigerants():
+            inp = pipeline.BedInput(
+                refrigerant=r,
+                zeolite=z,
+                mass_flow=mass_flow,
+                bed_height=bed_height,
+                column_diameter=column_diameter,
+                thresholds=(threshold,),
+            )
+            try:
+                res = pipeline.run(inp)
+            except pipeline.NoAdsorptionData:
+                cells.append({"zeolite": z, "refrigerant": r, "t_breakthrough": None, "Ka": None})
+                continue
+            cells.append({
+                "zeolite": z,
+                "refrigerant": r,
+                "t_breakthrough": res["breakthrough"][f"{threshold:g}"],
+                "Ka": res["equilibrium"]["Ka"],
+            })
+    return {
+        "zeolites": list(materials.zeolites()),
+        "refrigerants": list(materials.refrigerants()),
+        "cells": cells,
+    }

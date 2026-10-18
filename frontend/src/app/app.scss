@@ -105,3 +105,33 @@ table {
     font-family: monospace;
   }
 }
+
+.hint {
+  font-size: 0.8rem;
+  color: #777;
+  margin-top: -0.5rem;
+}
+
+.matrix {
+  td {
+    cursor: pointer;
+
+    &:hover {
+      background: #f2f7fc;
+    }
+  }
+
+  .selected {
+    background: #1f77b4;
+    color: #fff;
+
+    &:hover {
+      background: #1f77b4;
+    }
+  }
+
+  .empty {
+    color: #bbb;
+    cursor: default;
+  }
+}

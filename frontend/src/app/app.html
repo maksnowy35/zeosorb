@@ -78,6 +78,38 @@
           [threshold]="r.request.threshold"
           [markerTime]="r.t_breakthrough" />
 
+        @if (matrix(); as m) {
+          <h3>All pairs &ndash; breakthrough time [h]</h3>
+          <p class="hint">Same bed and flow, click a cell to open it. &ldquo;&ndash;&rdquo; = no isotherm data in literature.</p>
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th></th>
+                @for (ref of m.refrigerants; track ref) {
+                  <th>{{ ref }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (z of m.zeolites; track z) {
+                <tr>
+                  <th>{{ z }}</th>
+                  @for (ref of m.refrigerants; track ref) {
+                    @let t = cell(m, z, ref);
+                    <td
+                      class="num"
+                      [class.selected]="z === r.request.zeolite && ref === r.request.refrigerant"
+                      [class.empty]="t === null"
+                      (click)="t !== null && select(z, ref)">
+                      {{ t === null ? '–' : (t / 3600).toFixed(2) }}
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
         <details>
           <summary>All intermediate values</summary>
           <table>

@@ -45,3 +45,16 @@ export interface BreakthroughResponse {
   t_breakthrough: number;
   curve: { t: number[]; c: number[] };
 }
+
+export interface MatrixCell {
+  zeolite: string;
+  refrigerant: string;
+  t_breakthrough: number | null;
+  Ka: number | null;
+}
+
+export interface MatrixResponse {
+  zeolites: string[];
+  refrigerants: string[];
+  cells: MatrixCell[];
+}

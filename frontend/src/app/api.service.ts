@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { BreakthroughRequest, BreakthroughResponse, Materials } from './models';
+import { BreakthroughRequest, BreakthroughResponse, Materials, MatrixResponse } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -15,5 +15,10 @@ export class ApiService {
 
   breakthrough(req: BreakthroughRequest): Observable<BreakthroughResponse> {
     return this.http.post<BreakthroughResponse>(`${this.base}/breakthrough`, req);
+  }
+
+  matrix(req: Omit<BreakthroughRequest, 'refrigerant' | 'zeolite'>): Observable<MatrixResponse> {
+    const params = new HttpParams({ fromObject: { ...req } });
+    return this.http.get<MatrixResponse>(`${this.base}/matrix`, { params });
   }
 }

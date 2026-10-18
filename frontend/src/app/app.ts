@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 
 import { ApiService } from './api.service';
 import { BreakthroughChart, CurveSeries } from './breakthrough-chart';
-import { BreakthroughResponse } from './models';
+import { BreakthroughRequest, BreakthroughResponse, MatrixResponse } from './models';
 
 interface Row {
   group: keyof BreakthroughResponse;
@@ -24,6 +24,7 @@ export class App implements OnInit {
   refrigerants = signal<string[]>([]);
   zeolites = signal<string[]>([]);
   result = signal<BreakthroughResponse | null>(null);
+  matrix = signal<MatrixResponse | null>(null);
   error = signal<string | null>(null);
   loading = signal(false);
 
@@ -62,14 +63,17 @@ export class App implements OnInit {
   calculate(): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.breakthrough({
+    const req: BreakthroughRequest = {
       refrigerant: this.refrigerant,
       zeolite: this.zeolite,
       mass_flow: this.massFlow,
       bed_height: this.bedHeight,
       column_diameter: this.columnDiameter,
       threshold: this.thresholdPct / 100,
-    }).subscribe({
+    };
+    const { refrigerant, zeolite, ...bed } = req;
+    this.api.matrix(bed).subscribe(m => this.matrix.set(m));
+    this.api.breakthrough(req).subscribe({
       next: res => {
         this.result.set(res);
         this.loading.set(false);
@@ -89,6 +93,16 @@ export class App implements OnInit {
       c: r.curve.c,
       color: '#1f77b4',
     }];
+  }
+
+  cell(m: MatrixResponse, zeolite: string, refrigerant: string): number | null {
+    return m.cells.find(c => c.zeolite === zeolite && c.refrigerant === refrigerant)?.t_breakthrough ?? null;
+  }
+
+  select(zeolite: string, refrigerant: string): void {
+    this.zeolite = zeolite;
+    this.refrigerant = refrigerant;
+    this.calculate();
   }
 
   value(r: BreakthroughResponse, row: Row): number {

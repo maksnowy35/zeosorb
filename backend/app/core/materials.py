@@ -53,3 +53,8 @@ def adsorption() -> dict[str, dict[str, float]]:
 def adsorbed_amount(zeolite: str, refrigerant: str) -> float | None:
     """q [mol/kg] at 0.8 bar or None if there is no data for the pair."""
     return adsorption().get(zeolite, {}).get(refrigerant)
+
+
+@lru_cache
+def blends() -> dict[str, dict[str, float]]:
+    return _load("blends.json")["data"]

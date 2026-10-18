@@ -39,12 +39,14 @@ def stoichiometric_time(lam: float, d_eff: float, radius: float, height: float, 
     return radius**2 * lam / (3.0 * d_eff) + height / w
 
 
-def curve(lam: float, psi: float, d_eff: float, radius: float, height: float, w: float, n: int = 300) -> tuple[np.ndarray, np.ndarray]:
-    """Breakthrough curve c/c0(t). Points are denser around the front."""
+def curve(lam: float, psi: float, d_eff: float, radius: float, height: float, w: float,
+          n: int = 300, t_max: float | None = None) -> tuple[np.ndarray, np.ndarray]:
+    """Breakthrough curve c/c0(t) up to t_max (default 1.6 t_stoich). Points are denser around the front."""
     t_s = stoichiometric_time(lam, d_eff, radius, height, w)
+    t_max = t_max or 1.6 * t_s
     sig = spread(lam, psi) * (t_s - height / w)
-    coarse = np.linspace(0.0, 1.6 * t_s, n // 2)
-    fine = np.linspace(max(0.0, t_s - 5 * sig), t_s + 5 * sig, n - n // 2)
+    coarse = np.linspace(0.0, t_max, n // 2)
+    fine = np.linspace(max(0.0, t_s - 5 * sig), min(t_max, t_s + 5 * sig), n - n // 2)
     t = np.unique(np.concatenate([coarse, fine]))
 
     tau_p = 2.0 * d_eff / radius**2 * (t - height / w)

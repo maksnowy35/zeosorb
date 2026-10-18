@@ -1,0 +1,9 @@
+{
+  "_comment": "Mass fractions [%] of common zeotropic/azeotropic blends (ASHRAE 34). Used for separation presets.",
+  "data": {
+    "R410A": {"R32": 50, "R125": 50},
+    "R407C": {"R32": 23, "R125": 25, "R134a": 52},
+    "R404A": {"R125": 44, "R143a": 52, "R134a": 4},
+    "R507A": {"R125": 50, "R143a": 50}
+  }
+}

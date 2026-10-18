@@ -7,7 +7,10 @@ from .api import router
 app = FastAPI(
     title="ZeoSorb API",
     version=__version__,
-    description="Breakthrough of refrigerants through zeolite beds (Rosen model).",
+    description=(
+        "Breakthrough of refrigerants through zeolite beds: Rosen analytical solution, "
+        "numerical LDF model with axial dispersion, binary separation window."
+    ),
 )
 
 app.add_middleware(
@@ -17,4 +20,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router, prefix="/api")
+app.include_router(router, prefix="/api/v1")

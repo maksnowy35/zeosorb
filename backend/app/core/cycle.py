@@ -407,7 +407,7 @@ def _integrate_pair(bed: Bed, yA: np.ndarray, yB: np.ndarray, modes: dict, ctrls
 
 
 def _step_samples(duration: float) -> np.ndarray:
-    n = int(np.clip(duration / 10.0, 25, 180))
+    n = int(np.clip(duration / 15.0, 20, 120))
     return np.linspace(0.0, duration, n)
 
 

@@ -35,6 +35,7 @@ class Saturation:
     k_v: float
     cp_l: float     # J/(kg K)
     cp_v: float
+    T_l: float = 0.0   # K, bubble temperature at p (differs from T only for blends with a glide)
 
     @property
     def h_fg(self) -> float:
@@ -108,7 +109,7 @@ class Fluid:
         return Saturation(
             T=vap[0], p=vap[1] if inputs == CoolProp.QT_INPUTS else value,
             h_l=liq[2], h_v=vap[2], rho_l=liq[3], rho_v=vap[3], mu_l=liq[4], mu_v=vap[4],
-            k_l=liq[5], k_v=vap[5], cp_l=liq[6], cp_v=vap[6],
+            k_l=liq[5], k_v=vap[5], cp_l=liq[6], cp_v=vap[6], T_l=liq[0],
         )
 
     @lru_cache(maxsize=4096)
@@ -123,7 +124,14 @@ class Fluid:
         return self._saturation(CoolProp.PQ_INPUTS, p)
 
     def p_sat(self, T: float) -> float:
+        """Saturation pressure (dew pressure for a pseudo-pure blend)."""
         return self.sat_T(T).p
+
+    @lru_cache(maxsize=1024)
+    def p_bubble(self, T: float) -> float:
+        a = self._sat_as
+        a.update(CoolProp.QT_INPUTS, 0.0, T)
+        return a.p()
 
     def T_dew(self, p: float) -> float:
         return self.sat_p(p).T
@@ -139,7 +147,8 @@ class Fluid:
                 mu = 1.0 / (x / s.mu_v + (1.0 - x) / s.mu_l)
                 k = x * s.k_v + (1.0 - x) * s.k_l
                 cp = x * s.cp_v + (1.0 - x) * s.cp_l     # only used for reporting
-                return State(p, s.T, h, rho, mu, k, cp, x, s.T, "two-phase")
+                T = s.T_l + x * (s.T - s.T_l)            # glide of a zeotropic pseudo-pure blend
+                return State(p, T, h, rho, mu, k, cp, x, s.T, "two-phase")
         a = self._as
         a.update(CoolProp.HmassP_INPUTS, h, p)
         return self._single_phase(p)

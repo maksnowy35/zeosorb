@@ -14,7 +14,7 @@ def test_two_phase_state():
     st = fl.ph(2.5e5, s.h_l + 0.4 * s.h_fg)
     assert st.phase == "two-phase"
     assert st.x == pytest.approx(0.4)
-    assert st.T == pytest.approx(s.T)
+    assert st.T == pytest.approx(s.T, abs=0.3)   # R410A has a tiny glide
 
 
 def test_superheated_vapour_properties_at_thesis_point():

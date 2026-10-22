@@ -1,0 +1,31 @@
+{
+  "_comment": "Step tables. Pressures in bar g, durations in s. Modes per bed: fill, adsorb, blowdown, evacuate, purge, idle. 'control' is the bed whose pressure the step's setpoint refers to.",
+  "presets": {
+    "two_bed_10_step": {
+      "label": "10-step two-bed cycle",
+      "description": "A typical sequence for a two-bed unit: while one bed fills and adsorbs, the other is blown down, evacuated, purged and refilled. Times and setpoints are round example values; adjust them to the unit you look at.",
+      "steps": [
+        {"name": "Filling", "label": "", "duration": 1800, "bed_a": "fill", "bed_b": "adsorb", "control": "A", "direction": ">", "setpoint": 1.0},
+        {"name": "Final filling", "label": "", "duration": 900, "bed_a": "fill", "bed_b": "blowdown", "control": "B", "direction": "<", "setpoint": -0.80},
+        {"name": "Adsorption I", "label": "", "duration": 900, "bed_a": "adsorb", "bed_b": "evacuate", "control": "B", "direction": "<", "setpoint": -0.80},
+        {"name": "Adsorption II", "label": "", "duration": 1800, "bed_a": "adsorb", "bed_b": "evacuate", "control": "B", "direction": "<", "setpoint": -0.90},
+        {"name": "Adsorption III", "label": "", "duration": 1200, "bed_a": "adsorb", "bed_b": "purge", "control": null, "purge_pressure": 4.0},
+        {"name": "Adsorption IV", "label": "", "duration": 1800, "bed_a": "adsorb", "bed_b": "fill", "control": "B", "direction": ">", "setpoint": 1.0},
+        {"name": "Blowdown", "label": "", "duration": 900, "bed_a": "blowdown", "bed_b": "fill", "control": "A", "direction": "<", "setpoint": -0.95},
+        {"name": "Desorption I", "label": "", "duration": 900, "bed_a": "evacuate", "bed_b": "adsorb", "control": "A", "direction": "<", "setpoint": -0.95},
+        {"name": "Desorption II", "label": "", "duration": 1800, "bed_a": "evacuate", "bed_b": "adsorb", "control": "A", "direction": "<", "setpoint": -0.95},
+        {"name": "Purge", "label": "", "duration": 1200, "bed_a": "purge", "bed_b": "adsorb", "control": null, "purge_pressure": 4.0}
+      ]
+    },
+    "vsa_4_step": {
+      "label": "4-step vacuum swing (Skarstrom)",
+      "description": "Textbook two-bed cycle: pressurise with feed, adsorb, evacuate, purge with the light product.",
+      "steps": [
+        {"name": "Pressurisation", "label": "", "duration": 600, "bed_a": "fill", "bed_b": "evacuate", "control": "A", "direction": ">", "setpoint": 1.0},
+        {"name": "Adsorption", "label": "", "duration": 2400, "bed_a": "adsorb", "bed_b": "purge", "control": null, "purge_pressure": 0.5},
+        {"name": "Evacuation", "label": "", "duration": 600, "bed_a": "evacuate", "bed_b": "fill", "control": "B", "direction": ">", "setpoint": 1.0},
+        {"name": "Purge", "label": "", "duration": 2400, "bed_a": "purge", "bed_b": "adsorb", "control": null, "purge_pressure": 0.5}
+      ]
+    }
+  }
+}

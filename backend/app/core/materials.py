@@ -37,7 +37,8 @@ class Zeolite:
     channel_diameter: float    # m (equivalent channel diameter dz)
     grain_volume: float        # m3, V_k of one grain
     grain_mass: float          # kg, m_k of one grain
-    pore_volume: float         # m3/kg, zeolite micropore volume v_p
+    pore_volume: float         # m3/kg, zeolite micropore volume v_p as used in the thesis
+    micropore_volume: float    # cm3/g, typical value for commercial pellets (binder included), Langmuir q_m
     macroporosity: float       # -, binder macropores in the grain, eps_M
     macropore_diameter: float  # m
     tortuosity: float          # -, macropore tortuosity factor

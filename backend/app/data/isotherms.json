@@ -1,0 +1,14 @@
+{
+  "_comment": [
+    "Langmuir isotherms with temperature dependence, anchored to the single points of the thesis (Tab. 2, 0.8 bar, 100 C).",
+    "q_m (saturation capacity) and dH (isosteric heat) are ESTIMATES unless listed in 'overrides':",
+    "  q_m = micropore volume of the zeolite / molar volume of the liquid refrigerant at its normal boiling point",
+    "  dH  = isosteric_factor * heat of vaporisation at the normal boiling point",
+    "Replace them with fitted values as soon as there are isotherms at two or more temperatures."
+  ],
+  "T_ref": 373.15,
+  "p_ref_bar": 0.8,
+  "isosteric_factor": 1.6,
+  "min_capacity_ratio": 1.15,
+  "overrides": {}
+}

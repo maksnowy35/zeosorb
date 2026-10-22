@@ -97,3 +97,15 @@ def test_tank_fractionation_of_zeotropic_blend():
 def test_tank_liquid_withdrawal_keeps_composition():
     r = tank.simulate(tank.TankInput(fluid="R407C", withdrawal="liquid", duration=8))
     assert r.feed_composition[-1]["R32"] == pytest.approx(0.23, abs=1e-6)
+
+
+def test_overheating_gives_a_readable_error(sat):
+    segs = [fl.Segment("Segment 1", 0.04, 3.0, heating=fl.Heating(kind="trace", q_trace=5000))]
+    with pytest.raises(ValueError, match="hotter than the property data"):
+        fl.simulate("R410A", 30, sat.p, sat.h_v, 2.5e5, segs)
+
+
+def test_trace_solver_survives_overheating_bound(sat):
+    segs = [fl.Segment("Segment 1", 0.04, 3.0, heating=fl.Heating(kind="trace", q_trace=100))]
+    value, r, ok = fl.solve_setting("R410A", 30, sat.p, sat.h_v, 2.5e5, segs, 0, 373.15, 0.0, 5000.0)
+    assert ok and r.outlet.T == pytest.approx(373.15, abs=0.1)

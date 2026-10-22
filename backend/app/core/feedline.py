@@ -259,8 +259,14 @@ def simulate(fluid_key: str, mass_flow: float, p_tank: float, h_tank: float, p_r
             f = churchill(re, pipe.seg.roughness / pipe.seg.D)
             return [q / m_dot, -f * pipe.G**2 / (2.0 * pipe.seg.D * st.rho)]
 
-        sol = solve_ivp(rhs, (0.0, seg.L), [h, p], method="RK45", rtol=1e-7, atol=[1e-2, 1e-2],
-                        max_step=seg.L / 40.0, dense_output=True)
+        try:
+            sol = solve_ivp(rhs, (0.0, seg.L), [h, p], method="RK45", rtol=1e-7, atol=[1e-2, 1e-2],
+                            max_step=seg.L / 40.0, dense_output=True)
+        except ValueError as e:
+            if "out of range" not in str(e):
+                raise
+            raise ValueError(f"{seg.name}: the gas would get hotter than the property data for {fluid_key} reach "
+                             f"(about {fl._as.Tmax() - 273.15:.0f} °C). Less heat or more flow.") from None
         zs = np.linspace(0.0, seg.L, points_per_segment)
         hs, ps = sol.sol(zs)
 
@@ -335,24 +341,36 @@ def solve_setting(fluid_key: str, mass_flow: float, p_tank: float, h_tank: float
     seg = segments[index]
     attr = "q_trace" if seg.heating.kind == "trace" else "T_medium"
 
-    def run(v: float) -> LineResult:
+    def run(v: float) -> LineResult | None:
         setattr(seg.heating, attr, v)
-        return simulate(fluid_key, mass_flow, p_tank, h_tank, p_reducer, segments)
+        try:
+            return simulate(fluid_key, mass_flow, p_tank, h_tank, p_reducer, segments)
+        except ValueError:
+            return None          # so much heat that the gas leaves the property range: "too hot"
 
-    r_lo, r_hi = run(lo), run(hi)
+    def t_out(r: LineResult | None) -> float:
+        return math.inf if r is None else r.outlet.T
+
+    r_lo = run(lo)
+    if r_lo is None:
+        raise ValueError("even the lowest setting overheats the gas")
     if r_lo.outlet.T >= target_T:
         return lo, r_lo, abs(r_lo.outlet.T - target_T) < 1.0
-    if r_hi.outlet.T <= target_T:
+    r_hi = run(hi)
+    if r_hi is not None and r_hi.outlet.T <= target_T:
         return hi, r_hi, abs(r_hi.outlet.T - target_T) < 1.0
     a, b = lo, hi
-    res = r_hi
+    best, best_v = r_lo, lo
     for _ in range(40):
         mid = 0.5 * (a + b)
         res = run(mid)
-        if abs(res.outlet.T - target_T) < tol:
-            return mid, res, True
-        if res.outlet.T < target_T:
+        if res is not None:
+            best, best_v = res, mid
+            if abs(res.outlet.T - target_T) < tol:
+                return mid, res, True
+        if t_out(res) < target_T:
             a = mid
         else:
             b = mid
-    return mid, res, True
+    setattr(seg.heating, attr, best_v)
+    return best_v, best, abs(best.outlet.T - target_T) < 1.0

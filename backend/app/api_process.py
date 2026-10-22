@@ -79,10 +79,13 @@ def feed_solve(req: FeedSolveRequest):
         hi = (req.hi if req.hi is not None else 200.0) + C0
     else:
         lo = req.lo if req.lo is not None else 0.0
-        hi = req.hi if req.hi is not None else 2000.0
+        hi = req.hi if req.hi is not None else 800.0
     p_in, h_in = feed.tank_outlet(setup, setup.tank.T0)
-    value, _, reached = feedline.solve_setting(setup.fluid, setup.mass_flow, p_in, h_in, setup.reducer,
-                                               setup.segments, req.segment, setup.target, lo, hi)
+    try:
+        value, _, reached = feedline.solve_setting(setup.fluid, setup.mass_flow, p_in, h_in, setup.reducer,
+                                                   setup.segments, req.segment, setup.target, lo, hi)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
     res = _analyse(setup)    # segments now carry the solved value
     res["solved"] = {
         "segment": req.segment, "kind": seg.heating.kind, "reached": reached,

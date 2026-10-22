@@ -17,6 +17,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/separation/separation').then(m => m.Separation),
   },
   {
+    path: 'feed',
+    title: 'ZeoSorb · Feed line',
+    loadComponent: () => import('./pages/feed/feed').then(m => m.Feed),
+  },
+  {
     path: 'model',
     title: 'ZeoSorb · Model and sources',
     loadComponent: () => import('./pages/model/model').then(m => m.ModelPage),

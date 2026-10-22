@@ -6,6 +6,7 @@ import {
   BedParams, BreakthroughRequest, BreakthroughResponse, Materials, MatrixResponse,
   SeparationRequest, SeparationResponse, SweepRequest, SweepResponse,
 } from './models';
+import { CycleRequest, CycleResponse, FeedRequest, FeedResponse, ProcessDefaults } from './process-models';
 
 @Injectable({ providedIn: 'root' })
 export class Api {
@@ -35,5 +36,21 @@ export class Api {
 
   sweep(req: SweepRequest): Observable<SweepResponse> {
     return this.http.post<SweepResponse>(`${this.base}/sweep`, req);
+  }
+
+  readonly processDefaults$: Observable<ProcessDefaults> = this.http
+    .get<ProcessDefaults>(`${this.base}/process/defaults`)
+    .pipe(shareReplay(1));
+
+  feed(req: FeedRequest): Observable<FeedResponse> {
+    return this.http.post<FeedResponse>(`${this.base}/feed`, req);
+  }
+
+  feedSolve(req: FeedRequest & { segment: number; lo?: number; hi?: number }): Observable<FeedResponse> {
+    return this.http.post<FeedResponse>(`${this.base}/feed/solve`, req);
+  }
+
+  cycle(req: CycleRequest): Observable<CycleResponse> {
+    return this.http.post<CycleResponse>(`${this.base}/cycle`, req);
   }
 }

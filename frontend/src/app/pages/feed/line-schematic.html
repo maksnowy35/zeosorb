@@ -1,0 +1,82 @@
+<svg viewBox="0 0 900 250" role="img" [attr.aria-label]="ariaLabel()">
+  <defs>
+    @for (p of pipes(); track p.gradientId) {
+      <linearGradient [attr.id]="p.gradientId" x1="0" x2="1" y1="0" y2="0">
+        @for (s of p.stops; track $index) {
+          <stop [attr.offset]="s.offset" [attr.stop-color]="s.color" />
+        }
+      </linearGradient>
+    }
+    <pattern id="bubbles" width="14" height="10" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="3" r="1.8" class="bubble" />
+      <circle cx="11" cy="7" r="1.2" class="bubble" />
+    </pattern>
+    <pattern id="insulation" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="6" class="hatch" />
+    </pattern>
+    <clipPath id="tank-clip">
+      <rect x="22" y="78" width="176" height="100" rx="50" />
+    </clipPath>
+  </defs>
+
+  <!-- tank -->
+  <g clip-path="url(#tank-clip)">
+    <rect x="22" y="78" width="176" height="100" class="vapour-space" />
+    <rect x="22" [attr.y]="tank().level" width="176" [attr.height]="178 - tank().level" [attr.fill]="tank().liquid" opacity="0.85" />
+  </g>
+  <rect x="22" y="78" width="176" height="100" rx="50" class="vessel" />
+  @if (tank().liquidOut) {
+    <path d="M150 78 L150 64 M150 78 L150 168" class="dip" />
+  } @else {
+    <path d="M150 78 L150 64" class="dip" />
+  }
+  <path d="M150 64 L150 56 L232 56 L232 112" class="tube" />
+  <text x="110" y="200" class="label" text-anchor="middle">{{ tank().label }}</text>
+  <text x="110" y="216" class="label strong" text-anchor="middle">{{ tank().state }}</text>
+  <text x="110" y="232" class="label" text-anchor="middle">{{ request().tank.withdrawal === 'liquid' ? 'liquid drawn off' : 'vapour drawn off' }}</text>
+
+  <!-- reducer -->
+  <g [attr.transform]="'translate(232,' + mid + ')'">
+    <path d="M-12 -9 L12 9 L12 -9 L-12 9 Z" class="valve" />
+    <path d="M0 0 L0 -18 M-7 -18 L7 -18" class="valve-stem" />
+  </g>
+  <path [attr.d]="'M244 ' + mid + ' L262 ' + mid" class="tube" />
+  <text x="232" [attr.y]="mid + 34" class="label" text-anchor="middle">reducer</text>
+  <text x="232" [attr.y]="mid + 50" class="label strong" text-anchor="middle">{{ result().reducer.p_out_bar.toFixed(2) }} bar</text>
+
+  <!-- pipes -->
+  @for (p of pipes(); track p.gradientId) {
+    @if (p.jacketColor) {
+      <rect [attr.x]="p.x + 6" [attr.y]="p.y - 9" [attr.width]="p.w - 12" [attr.height]="p.h + 18" rx="4"
+            [attr.fill]="p.jacketColor" class="jacket" />
+    } @else if (p.seg.heating.kind === 'insulated' || p.seg.heating.kind === 'trace') {
+      <rect [attr.x]="p.x + 2" [attr.y]="p.y - 7" [attr.width]="p.w - 4" [attr.height]="p.h + 14" rx="3" fill="url(#insulation)" class="insul" />
+    }
+    <rect [attr.x]="p.x" [attr.y]="p.y" [attr.width]="p.w" [attr.height]="p.h" [attr.fill]="'url(#' + p.gradientId + ')'" class="pipe" />
+    @if (p.twoPhase) {
+      <rect [attr.x]="p.twoPhase.x0" [attr.y]="p.y + 1" [attr.width]="p.twoPhase.x1 - p.twoPhase.x0" [attr.height]="p.h - 2" fill="url(#bubbles)" />
+    }
+    @if (p.seg.heating.kind === 'trace') {
+      <path [attr.d]="'M' + (p.x + 4) + ' ' + (p.y + p.h + 3) + ' l8 -3 l8 3 l8 -3 l8 3 l8 -3 l8 3 l8 -3 l8 3'" class="trace" />
+    }
+    <text [attr.x]="p.x + p.w / 2" y="30" class="label strong" text-anchor="middle">{{ p.title }}</text>
+    <text [attr.x]="p.x + p.w / 2" y="46" class="label" text-anchor="middle">{{ p.heating }}</text>
+    <text [attr.x]="p.x + p.w / 2" [attr.y]="mid + 48" class="duty" text-anchor="middle">{{ p.duty }}</text>
+  }
+
+  <!-- temperatures at the joints -->
+  <text x="268" [attr.y]="mid - 30" class="temp">{{ inletT().toFixed(0) }} °C</text>
+  @for (j of joints(); track j.x) {
+    <line [attr.x1]="j.x" [attr.x2]="j.x" [attr.y1]="mid - 26" [attr.y2]="mid + 26" class="joint" />
+    <text [attr.x]="j.x" [attr.y]="mid - 30" class="temp" text-anchor="middle">{{ j.T.toFixed(0) }} °C</text>
+  }
+
+  <!-- adsorber -->
+  <path [attr.d]="'M' + pipeEnd() + ' ' + mid + ' L846 ' + mid" class="tube" />
+  <path d="M846 76 C846 64 886 64 886 76 L886 196 C886 208 846 208 846 196 Z" class="vessel" />
+  <rect x="848" y="96" width="36" height="88" class="bed" />
+  <text x="866" y="226" class="label" text-anchor="middle">adsorber</text>
+  <text [attr.x]="pipeEnd() - 4" [attr.y]="mid - 30" class="temp big" text-anchor="end">
+    {{ outlet().T_C.toFixed(0) }} °C
+  </text>
+</svg>

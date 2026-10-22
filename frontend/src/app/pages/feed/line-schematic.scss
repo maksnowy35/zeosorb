@@ -1,0 +1,114 @@
+:host {
+  display: block;
+}
+
+svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  font-family: var(--font);
+}
+
+.vessel {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.vapour-space {
+  fill: #eef1ef;
+}
+
+.dip,
+.tube {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2.5;
+}
+
+.valve {
+  fill: var(--panel);
+  stroke: var(--ink);
+  stroke-width: 1.8;
+}
+
+.valve-stem {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.pipe {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.jacket {
+  stroke: var(--ink);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  fill-opacity: 0.55;
+}
+
+.insul {
+  stroke: var(--steel);
+  stroke-width: 0.8;
+}
+
+.hatch {
+  stroke: var(--steel);
+  stroke-width: 1;
+  opacity: 0.45;
+}
+
+.bubble {
+  fill: #ffffff;
+  fill-opacity: 0.9;
+  stroke: var(--ink);
+  stroke-width: 0.4;
+}
+
+.trace {
+  fill: none;
+  stroke: var(--signal);
+  stroke-width: 1.4;
+}
+
+.joint {
+  stroke: var(--ink);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.bed {
+  fill: var(--ochre);
+  fill-opacity: 0.35;
+}
+
+.label {
+  font-size: 12px;
+  fill: var(--steel);
+
+  &.strong {
+    fill: var(--ink);
+    font-weight: 600;
+  }
+}
+
+.duty {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.temp {
+  font-size: 14px;
+  font-weight: 600;
+  fill: var(--ink);
+  font-variant-numeric: tabular-nums;
+
+  &.big {
+    font-family: var(--font-display);
+    font-size: 22px;
+  }
+}

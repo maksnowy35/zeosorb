@@ -1,0 +1,244 @@
+<div class="feed">
+  <aside class="controls" aria-label="Feed line inputs">
+    @if (req(); as r) {
+      <fieldset>
+        <legend>Refrigerant</legend>
+        <div class="chips">
+          @for (f of single; track f) {
+            <button type="button" class="chip" [class.on]="r.fluid === f" [attr.aria-pressed]="r.fluid === f"
+                    (click)="setPath('fluid', f)">
+              <span class="dot" [style.background]="refColor(f)"></span>{{ f }}
+            </button>
+          }
+        </div>
+        <div class="chips blends">
+          @for (f of blends; track f) {
+            <button type="button" class="chip" [class.on]="r.fluid === f" [attr.aria-pressed]="r.fluid === f"
+                    (click)="setPath('fluid', f)">{{ f }}</button>
+          }
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Storage tank</legend>
+        <div class="segmented" role="group" aria-label="What is drawn off the tank">
+          <button type="button" [class.on]="r.tank.withdrawal === 'vapour'" (click)="setPath('tank.withdrawal', 'vapour')">Draw vapour</button>
+          <button type="button" [class.on]="r.tank.withdrawal === 'liquid'" (click)="setPath('tank.withdrawal', 'liquid')">Draw liquid</button>
+        </div>
+        <label class="slider">
+          <span>Volume <b>{{ r.tank.volume_L.toFixed(0) }} L</b></span>
+          <input type="range" min="50" max="2000" step="10" [value]="r.tank.volume_L" (input)="setVal('tank.volume_L', $event)">
+        </label>
+        <label class="slider">
+          <span>Charge <b>{{ r.tank.fill_kg.toFixed(0) }} kg</b></span>
+          <input type="range" min="10" [max]="r.tank.volume_L * 1.1" step="5" [value]="r.tank.fill_kg" (input)="setVal('tank.fill_kg', $event)">
+        </label>
+        <label class="slider">
+          <span>Tank temperature <b>{{ r.tank.T0_C.toFixed(0) }} °C</b></span>
+          <input type="range" min="-10" max="45" step="1" [value]="r.tank.T0_C" (input)="setTankTemperature($event)">
+        </label>
+        <label class="slider">
+          <span>Surroundings <b>{{ r.tank.T_amb_C.toFixed(0) }} °C</b></span>
+          <input type="range" min="-10" max="40" step="1" [value]="r.tank.T_amb_C" (input)="setVal('tank.T_amb_C', $event)">
+        </label>
+        <div class="segmented" role="group" aria-label="Tank heating">
+          <button type="button" [class.on]="r.tank.heater === 'off'" (click)="setPath('tank.heater', 'off')">Unheated</button>
+          <button type="button" [class.on]="r.tank.heater === 'thermostat'" (click)="setPath('tank.heater', 'thermostat')">Thermostat</button>
+          <button type="button" [class.on]="r.tank.heater === 'power'" (click)="setPath('tank.heater', 'power')">Fixed</button>
+        </div>
+        @if (r.tank.heater !== 'off') {
+          <label class="slider">
+            <span>{{ r.tank.heater === 'thermostat' ? 'Heater up to' : 'Heater' }} <b>{{ r.tank.heater_kW.toFixed(1) }} kW</b></span>
+            <input type="range" min="0.2" max="15" step="0.1" [value]="r.tank.heater_kW" (input)="setVal('tank.heater_kW', $event)">
+          </label>
+        }
+      </fieldset>
+
+      <fieldset>
+        <legend>Flow and pressure</legend>
+        <label class="slider">
+          <span>Mass flow <b>{{ r.mass_flow.toFixed(0) }} kg/h</b></span>
+          <input type="range" min="1" max="120" step="1" [value]="r.mass_flow" (input)="setVal('mass_flow', $event)">
+        </label>
+        <label class="slider">
+          <span>Reducer outlet <b>{{ r.reducer_bar.toFixed(2) }} bar abs</b></span>
+          <input type="range" min="0.3" max="8" step="0.05" [value]="r.reducer_bar" (input)="setVal('reducer_bar', $event)">
+        </label>
+        <label class="slider">
+          <span>Campaign <b>{{ r.campaign_h.toFixed(0) }} h</b></span>
+          <input type="range" min="1" max="24" step="1" [value]="r.campaign_h" (input)="setVal('campaign_h', $event)">
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>At the adsorber</legend>
+        <label class="slider">
+          <span>Wanted temperature <b>{{ r.target_C.toFixed(0) }} °C</b></span>
+          <input type="range" min="-20" max="250" step="1" [value]="r.target_C" (input)="setVal('target_C', $event)">
+        </label>
+        <label class="slider">
+          <span>Margin above dew point <b>{{ r.superheat_min_K.toFixed(0) }} K</b></span>
+          <input type="range" min="0" max="40" step="1" [value]="r.superheat_min_K" (input)="setVal('superheat_min_K', $event)">
+        </label>
+        <div class="chips" role="group" aria-label="Zeolite for the capacity curve">
+          @for (z of zeolites; track z) {
+            <button type="button" class="chip" [class.on]="r.zeolite === z" (click)="setPath('zeolite', z)">{{ z }}</button>
+          }
+        </div>
+      </fieldset>
+    }
+  </aside>
+
+  <section class="main" [class.busy]="loading()">
+    @if (error(); as e) {
+      <p class="error" role="alert">{{ e }}</p>
+    }
+
+    @if (data(); as d) {
+      @let r = req()!;
+      <header class="readout" aria-live="polite">
+        <h1>{{ headline() }}</h1>
+        <p>
+          {{ d.outlet.superheat_K.toFixed(0) }} K above its dew point ({{ d.outlet.dew_C.toFixed(0) }} °C at {{ d.outlet.p_bar.toFixed(2) }} bar),
+          {{ num(d.outlet.mu_uPa_s) }} µPa·s, {{ num(d.outlet.rho) }} kg/m³, {{ num(d.outlet.volume_flow_m3h) }} m³/h.
+          The line puts {{ duty(totalDuty()) }} into the gas.
+          @if (loading()) {
+            <span class="busy-note">Recalculating</span>
+          }
+        </p>
+      </header>
+
+      <app-line-schematic [request]="r" [result]="d" />
+
+      <div class="segments" [style.--n]="r.segments.length">
+        @for (seg of r.segments; track $index; let i = $index) {
+          @let s = d.segments[i];
+          <article class="segment">
+            <header>
+              <h2>{{ seg.name }}</h2>
+              @if (r.segments.length > 1) {
+                <button type="button" class="link" (click)="removeSegment(i)" [attr.aria-label]="'Remove ' + seg.name">Remove</button>
+              }
+            </header>
+            <div class="inputs">
+              <label>Inner Ø, mm
+                <input type="number" min="3" max="500" step="1" [value]="seg.D_mm" (change)="setSegVal(i, 'D_mm', $event)">
+              </label>
+              <label>Length, m
+                <input type="number" min="0.1" max="200" step="0.1" [value]="seg.L_m" (change)="setSegVal(i, 'L_m', $event)">
+              </label>
+              <label class="wide">Heating
+                <select [value]="seg.heating.kind" (change)="setHeating(i, $any($event.target).value)">
+                  @for (k of heatingKinds; track k) {
+                    <option [value]="k" [selected]="k === seg.heating.kind">{{ heatingLabel[k] }}</option>
+                  }
+                </select>
+              </label>
+              @if (seg.heating.kind === 'medium') {
+                <label class="slider wide">
+                  <span>Water / oil in the jacket <b>{{ seg.heating.T_medium_C.toFixed(0) }} °C</b></span>
+                  <input type="range" min="-30" max="200" step="1" [value]="seg.heating.T_medium_C"
+                         (input)="setSegVal(i, 'heating.T_medium_C', $event)">
+                </label>
+              } @else if (seg.heating.kind === 'trace') {
+                <label class="slider wide">
+                  <span>Trace power <b>{{ seg.heating.q_trace_W_m.toFixed(0) }} W/m</b></span>
+                  <input type="range" min="0" max="1500" step="5" [value]="seg.heating.q_trace_W_m"
+                         (input)="setSegVal(i, 'heating.q_trace_W_m', $event)">
+                </label>
+              }
+              @if (seg.heating.kind === 'medium' || seg.heating.kind === 'trace') {
+                <button type="button" class="wide" (click)="solve(i)" [disabled]="solving() !== null">
+                  {{ solving() === i ? 'Searching' : 'Find setting for ' + r.target_C.toFixed(0) + ' °C' }}
+                </button>
+              }
+            </div>
+            @if (s) {
+              <dl class="results">
+                <div><dt>Gas in, out</dt><dd>{{ s.T_in_C.toFixed(0) }} → {{ s.T_out_C.toFixed(0) }} °C</dd></div>
+                <div><dt>Heat into the gas</dt><dd>{{ duty(s.duty_W) }}</dd></div>
+                @if (s.x_in !== null) {
+                  <div><dt>Vapour quality</dt><dd>{{ s.x_in.toFixed(2) }} → {{ s.x_out === null ? 'all vapour' : s.x_out.toFixed(2) }}</dd></div>
+                }
+                <div><dt>Inside coefficient</dt><dd>{{ num(s.h_mean) }} W/m²K</dd></div>
+                <div><dt>Gas velocity</dt><dd>{{ num(s.u_in) }} → {{ num(s.u_out) }} m/s</dd></div>
+                <div><dt>Reynolds</dt><dd>{{ num(s.re_out) }}</dd></div>
+                @if (s.ntu !== null) {
+                  <div><dt>NTU</dt><dd>{{ num(s.ntu) }}</dd></div>
+                }
+                <div><dt>Pressure loss</dt><dd>{{ num(s.dp_Pa) }} Pa</dd></div>
+                <div><dt>Time in the pipe</dt><dd>{{ num(s.residence_s) }} s</dd></div>
+              </dl>
+            }
+          </article>
+        }
+        @if (r.segments.length < 4) {
+          <button type="button" class="add" (click)="addSegment()">Add a segment</button>
+        }
+      </div>
+      @if (solveNote(); as n) {
+        <p class="solve-note" role="status">{{ n }}</p>
+      }
+
+      <ul class="findings">
+        @for (f of d.findings; track $index) {
+          <li [class.warning]="f.severity === 'warning'">{{ f.text }}</li>
+        }
+      </ul>
+
+      <section class="block">
+        <h2>Along the line</h2>
+        <app-line-chart [series]="lineSeries()" [markers]="lineMarkers()" xLabel="distance from the reducer [m]"
+                        yLabel="temperature [°C]" [yMin]="lineRange().min" [yMax]="lineRange().max" [height]="280"
+                        ariaLabel="Gas, dew point and jacket temperature along the feed line" />
+      </section>
+
+      <section class="block">
+        <h2>While the tank empties</h2>
+        <div class="trio" [class.four]="composition()">
+          <figure>
+            <figcaption>Tank pressure [bar]</figcaption>
+            <app-line-chart [series]="tankPressure()" [markers]="tankMarkers()" xLabel="t [h]" yLabel="bar" [yMin]="0"
+                            [yMax]="undefined" [height]="200" [legend]="false" ariaLabel="Tank pressure during the campaign" />
+          </figure>
+          <figure>
+            <figcaption>Temperatures [°C]</figcaption>
+            <app-line-chart [series]="campaignSeries()" xLabel="t [h]" yLabel="°C" [yMin]="undefined" [yMax]="undefined"
+                            [height]="200" ariaLabel="Gas temperature at the adsorber and tank temperature during the campaign" />
+          </figure>
+          @if (composition(); as c) {
+            <figure>
+              <figcaption>What leaves the tank [% by mass]</figcaption>
+              <app-line-chart [series]="c" xLabel="t [h]" yLabel="%" [yMin]="undefined" [yMax]="undefined" [height]="200"
+                              ariaLabel="Composition of the refrigerant drawn off the tank" />
+            </figure>
+          }
+        </div>
+      </section>
+
+      @if (d.capacity) {
+        <section class="block">
+          <h2>Which feed temperature</h2>
+          <p class="note">
+            Loading of {{ r.zeolite }} in equilibrium with this feed at {{ r.reducer_bar.toFixed(2) }} bar, if the bed ran at the gas
+            temperature. Colder gas fills the bed further; the limit is the dew point plus the margin (shaded).
+          </p>
+          <div class="pair">
+            <figure>
+              <figcaption>Loading [kg per kg of zeolite]</figcaption>
+              <app-line-chart [series]="capacitySeries()" [band]="capacityBand()" [markers]="capacityMarkers()" xLabel="gas temperature [°C]"
+                              yLabel="kg/kg" [yMin]="0" [yMax]="undefined" [height]="240" ariaLabel="Bed loading against feed temperature" />
+            </figure>
+            <figure>
+              <figcaption>Viscosity of the gas [µPa·s]</figcaption>
+              <app-line-chart [series]="viscositySeries()" xLabel="gas temperature [°C]" yLabel="µPa·s" [yMin]="undefined" [yMax]="undefined"
+                              [height]="240" [legend]="false" ariaLabel="Gas viscosity against temperature" />
+            </figure>
+          </div>
+        </section>
+      }
+    } @else if (!error()) {
+      <p class="note">Calculating the line</p>
+    }
+  </section>
+</div>

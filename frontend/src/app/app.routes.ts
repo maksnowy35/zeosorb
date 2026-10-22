@@ -22,6 +22,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/feed/feed').then(m => m.Feed),
   },
   {
+    path: 'cycle',
+    title: 'ZeoSorb · Cycle',
+    loadComponent: () => import('./pages/cycle/cycle').then(m => m.Cycle),
+  },
+  {
     path: 'model',
     title: 'ZeoSorb · Model and sources',
     loadComponent: () => import('./pages/model/model').then(m => m.ModelPage),

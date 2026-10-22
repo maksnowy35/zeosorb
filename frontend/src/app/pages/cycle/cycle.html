@@ -1,0 +1,361 @@
+<div class="cycle">
+  <aside class="controls" aria-label="Cycle inputs">
+    @if (req(); as r) {
+      <fieldset>
+        <legend>Feed</legend>
+        @if (shared.feed(); as f) {
+          <button type="button" class="handoff" (click)="useFeedLine()">
+            Use the feed line: {{ f.fluid }} at {{ f.outlet_C.toFixed(0) }} °C
+          </button>
+        }
+        <label class="row">Refrigerant
+          <select [value]="r.plant.feed" (change)="setFeed($any($event.target).value)">
+            @for (f of feeds; track f) {
+              <option [value]="f" [selected]="f === r.plant.feed">{{ f }}</option>
+            }
+          </select>
+        </label>
+        @if (r.plant.feed_composition) {
+          <p class="note">Composition from the tank:
+            @for (c of r.plant.feed_composition | keyvalue; track c.key; let last = $last) {
+              {{ c.key }} {{ pct(+c.value) }}{{ last ? '' : ',' }}
+            }
+          </p>
+        }
+        <label class="slider">
+          <span>Gas temperature <b>{{ r.plant.feed_T_C.toFixed(0) }} °C</b></span>
+          <input type="range" min="-20" max="250" step="1" [value]="r.plant.feed_T_C" (input)="setVal('plant.feed_T_C', $event)">
+        </label>
+        <label class="slider">
+          <span>Reducer <b>{{ r.plant.feed_barg.toFixed(2) }} bar g</b></span>
+          <input type="range" min="-0.5" max="6" step="0.05" [value]="r.plant.feed_barg" (input)="setVal('plant.feed_barg', $event)">
+        </label>
+        <label class="slider">
+          <span>Flow limit <b>{{ r.plant.feed_flow.toFixed(1) }} kg/h</b></span>
+          <input type="range" min="0.5" max="60" step="0.5" [value]="r.plant.feed_flow" (input)="setVal('plant.feed_flow', $event)">
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Beds</legend>
+        <div class="chips">
+          @for (p of bedPresets(); track p.key) {
+            <button type="button" class="chip" [class.on]="r.bed.diameter_m === p.diameter_m && r.bed.height_m === p.height_m"
+                    (click)="useBed(p.key)" [title]="p.label">{{ p.label.split(',')[0] }}</button>
+          }
+        </div>
+        <div class="chips">
+          @for (z of zeolites; track z) {
+            <button type="button" class="chip" [class.on]="r.bed.zeolite === z" (click)="setPath('bed.zeolite', z)">{{ z }}</button>
+          }
+        </div>
+        <label class="slider">
+          <span>Diameter <b>{{ r.bed.diameter_m.toFixed(2) }} m</b></span>
+          <input type="range" min="0.03" max="1" step="0.01" [value]="r.bed.diameter_m" (input)="setVal('bed.diameter_m', $event)">
+        </label>
+        <label class="slider">
+          <span>Height <b>{{ r.bed.height_m.toFixed(2) }} m</b></span>
+          <input type="range" min="0.1" max="4" step="0.05" [value]="r.bed.height_m" (input)="setVal('bed.height_m', $event)">
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Product and vacuum</legend>
+        <label class="slider">
+          <span>Product back-pressure <b>{{ r.plant.product_barg.toFixed(2) }} bar g</b></span>
+          <input type="range" min="-0.8" max="5" step="0.05" [value]="r.plant.product_barg" (input)="setVal('plant.product_barg', $event)">
+        </label>
+        <label class="slider">
+          <span>Product line takes up to <b>{{ r.plant.product_flow.toFixed(1) }} kg/h</b></span>
+          <input type="range" min="0.2" max="30" step="0.1" [value]="r.plant.product_flow" (input)="setVal('plant.product_flow', $event)">
+        </label>
+        <label class="slider">
+          <span>Vacuum source <b>{{ r.plant.vacuum_speed.toFixed(0) }} m³/h</b></span>
+          <input type="range" min="1" max="100" step="1" [value]="r.plant.vacuum_speed" (input)="setVal('plant.vacuum_speed', $event)">
+        </label>
+        <label class="slider">
+          <span>It reaches down to <b>{{ r.plant.vacuum_barg.toFixed(2) }} bar g</b></span>
+          <input type="range" min="-0.999" max="-0.3" step="0.005" [value]="r.plant.vacuum_barg" (input)="setVal('plant.vacuum_barg', $event)">
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Purge</legend>
+        <label class="slider">
+          <span>Purge gas flow <b>{{ r.plant.purge_flow.toFixed(2) }} kg/h</b></span>
+          <input type="range" min="0" max="5" step="0.05" [value]="r.plant.purge_flow" (input)="setVal('plant.purge_flow', $event)">
+        </label>
+        <label class="slider">
+          <span>After the heater <b>{{ r.plant.purge_T_C.toFixed(0) }} °C</b></span>
+          <input type="range" min="20" max="300" step="5" [value]="r.plant.purge_T_C" (input)="setVal('plant.purge_T_C', $event)">
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Jacket</legend>
+        <label class="slider">
+          <span>Filling and adsorbing <b>{{ r.plant.jacket_C['adsorb']?.toFixed(0) }} °C</b></span>
+          <input type="range" min="20" max="200" step="5" [value]="r.plant.jacket_C['adsorb'] ?? 100" (input)="setLoadJacket($event)">
+        </label>
+        <label class="slider">
+          <span>Regenerating <b>{{ r.plant.jacket_C['evacuate']?.toFixed(0) }} °C</b></span>
+          <input type="range" min="20" max="320" step="5" [value]="r.plant.jacket_C['evacuate'] ?? 200" (input)="setRegenJacket($event)">
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>What a setpoint does</legend>
+        <div class="segmented stack" role="group" aria-label="Meaning of the pressure setpoints">
+          <button type="button" [class.on]="r.semantics === 'controller'" (click)="setPath('semantics', 'controller')">
+            Pressure controller, step runs its time
+          </button>
+          <button type="button" [class.on]="r.semantics === 'transition'" (click)="setPath('semantics', 'transition')">
+            Step ends at the setpoint
+          </button>
+        </div>
+      </fieldset>
+    }
+  </aside>
+
+  <section class="main">
+    <header class="intro">
+      <h1>Two beds, one cycle</h1>
+      <p>
+        While bed A fills and adsorbs, bed B is blown down, evacuated, purged and refilled, then they swap. Each run repeats
+        the cycle until it stops changing and reports that steady state.
+      </p>
+    </header>
+
+    @if (req(); as r) {
+      <div class="seq-head">
+        <div class="segmented" role="group" aria-label="Step table">
+          @for (p of presetList(); track p.key) {
+            <button type="button" [class.on]="preset() === p.key" (click)="usePreset(p.key)">{{ p.label }}</button>
+          }
+        </div>
+        <button type="button" class="run" (click)="run()" [disabled]="running()">
+          {{ running() ? 'Simulating, ' + elapsed() + ' s' : 'Run the cycle' }}
+        </button>
+      </div>
+      <p class="note">{{ presetDescription() }}</p>
+
+      <div class="table-wrap">
+        <table class="steps">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Step</th>
+              <th scope="col">Short name</th>
+              <th scope="col">Time [s]</th>
+              <th scope="col">Bed A</th>
+              <th scope="col">Bed B</th>
+              <th scope="col" colspan="3">Setpoint [bar g]</th>
+              <th scope="col">Purge supply [bar g]</th>
+              <th scope="col"><span class="sr">Remove</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of r.steps; track $index; let i = $index) {
+              <tr [class.selected]="selected() === i + 1">
+                <td class="idx">{{ i + 1 }}</td>
+                <td><input type="text" [value]="s.name" (change)="setStep(i, 'name', $event)" aria-label="Step name"></td>
+                <td><input type="text" [value]="s.label" (change)="setStep(i, 'label', $event)" aria-label="Short name"></td>
+                <td><input type="number" min="1" step="10" class="n" [value]="s.duration" (change)="setStep(i, 'duration', $event)" aria-label="Duration"></td>
+                <td>
+                  <select [value]="s.bed_a" (change)="setStep(i, 'bed_a', $event)" aria-label="Bed A mode" class="mode-select"
+                          [style.border-left-color]="modeColors[s.bed_a]">
+                    @for (m of modes; track m) {
+                      <option [value]="m" [selected]="m === s.bed_a">{{ modeLabel[m] }}</option>
+                    }
+                  </select>
+                </td>
+                <td>
+                  <select [value]="s.bed_b" (change)="setStep(i, 'bed_b', $event)" aria-label="Bed B mode" class="mode-select"
+                          [style.border-left-color]="modeColors[s.bed_b]">
+                    @for (m of modes; track m) {
+                      <option [value]="m" [selected]="m === s.bed_b">{{ modeLabel[m] }}</option>
+                    }
+                  </select>
+                </td>
+                <td>
+                  <select [value]="s.control ?? ''" (change)="setStep(i, 'control', $event)" aria-label="Bed the setpoint refers to">
+                    <option value="" [selected]="!s.control">none</option>
+                    <option value="A" [selected]="s.control === 'A'">bed A</option>
+                    <option value="B" [selected]="s.control === 'B'">bed B</option>
+                  </select>
+                </td>
+                <td>
+                  <select [value]="s.direction" (change)="setStep(i, 'direction', $event)" [disabled]="!s.control" aria-label="Direction">
+                    <option value=">" [selected]="s.direction === '>'">up to</option>
+                    <option value="<" [selected]="s.direction === '<'">down to</option>
+                  </select>
+                </td>
+                <td><input type="number" step="0.01" class="n" [value]="s.setpoint ?? ''" [disabled]="!s.control"
+                           (change)="setStep(i, 'setpoint', $event)" aria-label="Setpoint"></td>
+                <td><input type="number" step="0.1" class="n" [value]="s.purge_pressure ?? ''"
+                           (change)="setStep(i, 'purge_pressure', $event)" aria-label="Purge supply pressure"></td>
+                <td><button type="button" class="link" (click)="removeStep(i)" [attr.aria-label]="'Remove step ' + (i + 1)">×</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <button type="button" class="add" (click)="addStep()">Add a step</button>
+    }
+
+    @if (error(); as e) {
+      <p class="error" role="alert">{{ e }}</p>
+    }
+    @if (running() && !result()) {
+      <p class="note">Simulating until the cycle repeats itself. This takes 10 to 30 seconds.</p>
+    }
+
+    @if (result(); as res) {
+      <div [class.stale]="stale()">
+        <header class="readout" aria-live="polite">
+          @if (stale()) {
+            <p class="stale-note">Inputs changed since this run. Run the cycle again to update.</p>
+          }
+          <h2>{{ headline() }}</h2>
+          <dl class="kpi">
+            <div><dt>Cycle</dt><dd>{{ num(res.kpi.cycle_time_h) }} h, steady after {{ res.cycles }} cycles</dd></div>
+            @if (res.kpi.product_purity != null) {
+              <div><dt>Product ({{ res.kpi.weak }})</dt><dd>{{ pct(res.kpi.product_purity) }} pure, {{ pct(res.kpi.product_recovery ?? 0) }} recovered</dd></div>
+              <div><dt>Regenerate ({{ res.kpi.strong }})</dt><dd>{{ pct(res.kpi.extract_purity ?? 0) }} pure, {{ pct(res.kpi.extract_recovery ?? 0) }} recovered</dd></div>
+            }
+            <div><dt>Throughput</dt><dd>{{ num(res.kpi.productivity) }} kg per kg zeolite per hour</dd></div>
+            <div><dt>Jacket heat</dt><dd>{{ num(res.kpi.heat_in_kWh) }} kWh per cycle</dd></div>
+            <div><dt>Recovery units</dt><dd>{{ num(res.kpi.compressor_kWh) }} kWh per cycle</dd></div>
+            <div><dt>Energy per kg fed</dt><dd>{{ num(res.kpi.specific_energy_kWh_kg) }} kWh/kg</dd></div>
+            <div><dt>Bed temperature</dt><dd>{{ res.thermal.T_mean_min.toFixed(0) }} to {{ res.thermal.T_mean_max.toFixed(0) }} °C, time constant {{ num(res.thermal.tau_h) }} h</dd></div>
+          </dl>
+        </header>
+
+        <ul class="findings">
+          @for (f of res.findings; track $index) {
+            <li [class.warning]="f.severity === 'warning'">
+              {{ f.text }}
+              @if (f.steps?.length) {
+                <span class="goto">
+                  @for (n of f.steps; track n) {
+                    <button type="button" class="link" (click)="select(n)">step {{ n }}</button>
+                  }
+                </span>
+              }
+            </li>
+          }
+        </ul>
+
+        <section class="block">
+          <h2>Timeline</h2>
+          <p class="note">Pick a step to mark it in the charts. A filled triangle: the step's setpoint was reached; an open circle: it was not.</p>
+          <app-cycle-timeline [steps]="res.steps" [selected]="selected()" (pick)="select($event)" />
+          <ul class="legend">
+            @for (m of modes; track m) {
+              <li><span class="sw" [style.background]="modeColors[m]"></span>{{ modeLabel[m] }}</li>
+            }
+          </ul>
+        </section>
+
+        <section class="block">
+          <h2>Pressure</h2>
+          <app-line-chart [series]="pressureSeries()" [markers]="pressureMarkers()" [bands]="stepBands()"
+                          xLabel="t [h]" yLabel="bar g" [yMin]="-1" [yMax]="undefined" [height]="260"
+                          ariaLabel="Pressure in both beds over one cycle" />
+        </section>
+
+        <section class="block">
+          <div class="block-head">
+            <h2>Inside bed {{ view() }}</h2>
+            <div class="segmented" role="group" aria-label="Bed shown">
+              <button type="button" [class.on]="view() === 'A'" (click)="view.set('A')">Bed A</button>
+              <button type="button" [class.on]="view() === 'B'" (click)="view.set('B')">Bed B</button>
+            </div>
+          </div>
+          <div class="grid2">
+            <figure>
+              <figcaption>Temperature at three heights [°C]</figcaption>
+              <app-line-chart [series]="temperatureSeries()" [markers]="boundaries()" [bands]="stepBands()" xLabel="t [h]"
+                              yLabel="°C" [yMin]="undefined" [yMax]="undefined" [height]="230" ariaLabel="Bed temperatures" />
+            </figure>
+            <figure>
+              <figcaption>Mean loading [mol/kg]</figcaption>
+              <app-line-chart [series]="loadingSeries()" [markers]="boundaries()" [bands]="stepBands()" xLabel="t [h]"
+                              yLabel="mol/kg" [yMin]="0" [yMax]="undefined" [height]="230" ariaLabel="Mean loading of the bed" />
+            </figure>
+            <figure>
+              <figcaption>Flows [kg/h]</figcaption>
+              <app-line-chart [series]="flowSeries()" [markers]="boundaries()" [bands]="stepBands()" xLabel="t [h]"
+                              yLabel="kg/h" [yMin]="0" [yMax]="undefined" [height]="230" ariaLabel="Feed, product and regenerate flows" />
+            </figure>
+            @if (outletSeries().length) {
+              <figure>
+                <figcaption>Gas at the product end [% by moles]</figcaption>
+                <app-line-chart [series]="outletSeries()" [markers]="boundaries()" [bands]="stepBands()" xLabel="t [h]"
+                                yLabel="%" [yMin]="0" [yMax]="100" [height]="230" ariaLabel="Gas composition at the product end" />
+              </figure>
+            }
+          </div>
+        </section>
+
+        @if (profile(); as p) {
+          <section class="block">
+            <h2>Bed A at the end of step {{ p.step.index }}, {{ p.step.name }}</h2>
+            <div class="grid2">
+              <figure>
+                <figcaption>Loading along the height [mol/kg]</figcaption>
+                <app-line-chart [series]="p.q" xLabel="height from the top [m]" yLabel="mol/kg" [yMin]="0" [yMax]="undefined"
+                                [height]="210" ariaLabel="Loading profile" />
+              </figure>
+              <figure>
+                <figcaption>Temperature along the height [°C]</figcaption>
+                <app-line-chart [series]="p.T" xLabel="height from the top [m]" yLabel="°C" [yMin]="undefined" [yMax]="undefined"
+                                [height]="210" [legend]="false" ariaLabel="Temperature profile" />
+              </figure>
+            </div>
+          </section>
+        }
+
+        <section class="block">
+          <h2>Step by step</h2>
+          <div class="table-wrap">
+            <table class="results">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Step</th>
+                  <th scope="col">Lasted</th>
+                  <th scope="col">Ended by</th>
+                  <th scope="col">Bed A [bar g]</th>
+                  <th scope="col">Bed B [bar g]</th>
+                  <th scope="col">Feed [kg]</th>
+                  <th scope="col">Product [kg]</th>
+                  <th scope="col">Regenerate [kg]</th>
+                  <th scope="col">Jacket heat [kWh]</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of stepRows(); track row.s.index) {
+                  <tr [class.selected]="selected() === row.s.index" [class.flag]="row.flagged" (click)="select(row.s.index)">
+                    <td class="idx">{{ row.s.index }}</td>
+                    <td>{{ row.s.name }}@if (row.s.label) {<small>{{ row.s.label }}</small>}</td>
+                    <td class="n">{{ stepTime(row.s) }}</td>
+                    <td>{{ endedBy(row.s) }}</td>
+                    <td class="n"><span class="tag" [style.background]="modeColors[row.a.mode]"></span>{{ modeLabel[row.a.mode] }}
+                      {{ row.a.P_start.toFixed(2) }} → {{ row.a.P_end.toFixed(2) }}</td>
+                    <td class="n"><span class="tag" [style.background]="modeColors[row.b.mode]"></span>{{ modeLabel[row.b.mode] }}
+                      {{ row.b.P_start.toFixed(2) }} → {{ row.b.P_end.toFixed(2) }}</td>
+                    <td class="n">{{ num(row.feed) }}</td>
+                    <td class="n">{{ num(row.product) }}@if (row.strongShare !== null) {<small>{{ pct(row.strongShare) }} {{ res.kpi.strong }}</small>}</td>
+                    <td class="n">{{ num(row.regen) }}</td>
+                    <td class="n">{{ num(row.heat) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    }
+  </section>
+</div>

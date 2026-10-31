@@ -36,7 +36,6 @@ flowchart LR
     DE --> R
     SH --> R
     R --> T[c/c0 = ½ 1 + erf E<br/>breakthrough time τ]
-```
 
 Rosen parameters and the breakthrough curve:
 

@@ -275,6 +275,10 @@ table {
   }
 
   .goto {
+    display: inline-flex;
+    flex-wrap: wrap;
+    column-gap: 0.45rem;
+    max-width: 100%;
     margin-left: 0.3rem;
     white-space: nowrap;
   }

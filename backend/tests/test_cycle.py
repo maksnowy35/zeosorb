@@ -109,3 +109,17 @@ def test_thermal_time_constant_scales_with_diameter():
     small = cycle.Bed(cycle.BedSpec(diameter=0.07), cycle.Plant())
     big = cycle.Bed(cycle.BedSpec(diameter=0.5), cycle.Plant())
     assert big.thermal_time_constant > 10 * small.thermal_time_constant
+
+
+def test_bed_uses_corrected_structure_and_grain_kinetics():
+    from app.core import materials
+
+    bed = cycle.Bed(FAST, cycle.Plant())
+    zeo = materials.zeolites()[FAST.zeolite]
+    # gas between the grains + in their macropores, not the thesis total voidage
+    assert bed.eps == pytest.approx(zeo.interparticle_voidage + (1 - zeo.interparticle_voidage) * zeo.macroporosity)
+    assert bed.tau == zeo.tortuosity
+    # LDF time constant of the grains at the thesis point: minutes, not seconds
+    y = bed.initial(373.15, 0.8e5 + 1e5)
+    k = bed.ldf_coefficients(y)
+    assert 30 < 1 / k.max() < 3000

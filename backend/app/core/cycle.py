@@ -4,8 +4,9 @@ Two-bed adsorption cycle: pressure and temperature swing, non-isothermal, extend
 Each bed is split into N cells along its height; x = 0 is the top (feed in, regenerate out) and
 x = H the bottom (product out, purge in) - the usual counter-current arrangement. Per cell:
 
-    adsorbed phase   dq_i/dt = k_i (q_i* - q_i),     k_i = 15 D'_i / R_p^2 (Glueckauf), D' from the
-                                                      same molecular + Knudsen chain as the thesis
+    adsorbed phase   dq_i/dt = k_i (q_i* - q_i),     k_i = 15 eps_M D_p,i / (R_p^2 K_i) (Glueckauf),
+                                                      macropore diffusion as in the corrected column model,
+                                                      K_i = rho_p q_i*/c_i the grain capacity (isotherm secant)
     gas phase        component balances with upwind convection between cells
     energy           (rho_b (c_s + sum q_i c_p,i) + wall + gas) dT/dt
                        = convection + sum dH_i rho_b dq_i/dt + U A (T_jacket - T)
@@ -29,8 +30,8 @@ from typing import Literal
 import numpy as np
 from scipy.integrate import solve_ivp
 
-from . import fluids, isotherms, materials
-from .constants import K_B, N_A
+from . import fluids, isotherms, materials, transport
+from .constants import P_PROCESS, T_PROCESS
 
 R = fluids.R_GAS
 P_ATM = fluids.P_ATM
@@ -49,7 +50,7 @@ class BedSpec:
     h_wall: float = 50.0           # W/(m2 K), bed-to-wall film
     k_bed: float = 0.2             # W/(m K), effective radial conductivity of the packing
     cp_solid: float = 920.0        # J/(kg K), zeolite
-    tortuosity: float = 1.0
+    tortuosity: float | None = None   # None = the zeolite's macropore tortuosity
     cells: int = 16
 
 
@@ -135,8 +136,13 @@ class Bed:
         self.area = math.pi * spec.diameter**2 / 4.0
         self.V = self.area * spec.height
         self.Vc = self.V / N
-        self.eps = zeo.bed_porosity
+        # gas held in the bed: between the grains and in the grains' macropores (the thesis voidage
+        # also counted the zeolite micropores, where the refrigerant is adsorbed, not gas)
+        self.eps_b = zeo.interparticle_voidage
+        self.eps_M = zeo.macroporosity
+        self.eps = self.eps_b + (1.0 - self.eps_b) * self.eps_M
         self.rho_b = zeo.bulk_density
+        self.rho_p = zeo.envelope_density
         self.mass_zeolite = self.rho_b * self.V
         self.Rp = zeo.grain_radius
         wall_mass = 7900.0 * math.pi * spec.diameter * spec.wall * spec.height
@@ -144,11 +150,15 @@ class Bed:
         self.A_cell = math.pi * spec.diameter * spec.height / N       # wall area per cell
         self.U_jacket = 1.0 / (1.0 / spec.h_wall + (spec.diameter / 2.0) / (2.89 * spec.k_bed))
 
-        # diffusion: D_m = cm T^1.5 / P, D_K = ck sqrt(T)  (corrected mode of the thesis chain)
-        sizes = np.array([refs[n].molecule_size * 1e-10 for n in self.names])
-        m_mol = self.M / N_A
-        self.c_m = 2.0 / 3.0 * np.sqrt(K_B / (math.pi * m_mol)) * K_B / (math.pi * sizes**2)
-        self.c_k = zeo.pore_diameter * 1e-10 / 3.0 * np.sqrt(8.0 * R / (math.pi * self.M))
+        # transport into the grains, as in the corrected column model: D_m = c_m T^1.5 / P anchored to
+        # Chapman-Enskog (1.32 mu/rho) at the thesis conditions, D_K = c_k sqrt(T) in the macropores
+        d_ref = np.array([
+            transport.self_diffusivity(refs[n].viscosity, transport.gas_density(refs[n].molar_mass, P_PROCESS, T_PROCESS))
+            for n in self.names
+        ])
+        self.c_m = d_ref * P_PROCESS / T_PROCESS**1.5
+        self.c_k = zeo.macropore_diameter / 3.0 * np.sqrt(8.0 * R / (math.pi * self.M))
+        self.tau = spec.tortuosity or zeo.tortuosity
 
         # molar flow limits
         self.n_feed = plant.feed_flow / 3600.0 / self.M_feed
@@ -265,6 +275,22 @@ class Bed:
     def jacket(self, mode: str) -> float | None:
         return self.plant.jacket.get(mode)
 
+    def _k_ldf(self, p_bar: np.ndarray, T: np.ndarray, P: np.ndarray) -> np.ndarray:
+        """LDF coefficients (N, nc, K) [1/s] of the macropore model."""
+        Tn = T[:, None, :]
+        d_m = self.c_m[None, :, None] * Tn**1.5 / P[None, None, :]
+        d_k = self.c_k[None, :, None] * np.sqrt(Tn)
+        d_pore = 1.0 / (1.0 / d_m + 1.0 / d_k) / self.tau
+        # grain capacity per gas concentration, K = rho_p q*/c, from the isotherm secant
+        k_grain = self.rho_p * self.iso.secant(p_bar, T).transpose(0, 2, 1) * R * Tn / 1e5
+        return 15.0 * self.eps_M * d_pore / (self.Rp**2 * k_grain)
+
+    def ldf_coefficients(self, Y: np.ndarray) -> np.ndarray:
+        """k_i in every cell for one state, (N, nc) [1/s]."""
+        q, T, y, P = self.unpack(Y)
+        p_bar = (y * P[None, None, :] / 1e5).transpose(0, 2, 1)
+        return self._k_ldf(p_bar, T, P)[:, :, 0]
+
     # -- right-hand side --
     def rhs(self, Y: np.ndarray, mode: str, ctrl: dict | None, purge_pressure: float, F_feed=None) -> np.ndarray:
         one_d = Y.ndim == 1
@@ -276,10 +302,7 @@ class Bed:
         # equilibrium and kinetics
         p_bar = (y * P[None, None, :] / 1e5).transpose(0, 2, 1)            # (N, K, nc)
         q_star = self.iso.q_star(p_bar, T).transpose(0, 2, 1)               # (N, nc, K)
-        Tn = T[:, None, :]
-        d_m = self.c_m[None, :, None] * Tn**1.5 / P[None, None, :]
-        d_k = self.c_k[None, :, None] * np.sqrt(Tn)
-        k_ldf = 15.0 / self.Rp**2 / (1.0 / d_m + 1.0 / d_k) / self.spec.tortuosity
+        k_ldf = self._k_ldf(p_bar, T, P)
         qdot = k_ldf * (q_star - q)
         sq = qdot.sum(axis=1)                                                # (N, K)
 

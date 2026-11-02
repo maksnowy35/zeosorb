@@ -66,7 +66,7 @@ class CycleBedIn(BaseModel):
     wall_mm: float = Field(5.0, gt=0, le=50)
     h_wall: float = Field(50.0, gt=1, le=1000, description="bed-to-wall coefficient, W/m2K")
     k_bed: float = Field(0.2, gt=0.01, le=10, description="effective radial conductivity of the packing, W/mK")
-    tortuosity: float = Field(1.0, ge=1, le=10)
+    tortuosity: float | None = Field(None, ge=1, le=10, description="macropore tortuosity, default: the zeolite's")
     cells: int = Field(16, ge=6, le=40)
 
 

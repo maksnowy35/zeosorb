@@ -80,9 +80,12 @@ class Mixture:
 
     def q_star(self, p_bar: np.ndarray, T: np.ndarray) -> np.ndarray:
         """p_bar: partial pressures (..., nc), T broadcastable to (...,). Returns (..., nc)."""
+        return self.secant(p_bar, T) * p_bar
+
+    def secant(self, p_bar: np.ndarray, T: np.ndarray) -> np.ndarray:
+        """q*_i / p_i [mol/(kg bar)], finite also where a component is absent."""
         b = self.b_ref * np.exp(self.dH / R * (1.0 / T[..., None] - 1.0 / self.T_ref))
-        bp = b * p_bar
-        return self.q_m * bp / (1.0 + bp.sum(axis=-1, keepdims=True))
+        return self.q_m * b / (1.0 + (b * p_bar).sum(axis=-1, keepdims=True))
 
 
 def capacity_curve(zeolite: str, composition_mass: dict[str, float], p: float, temperatures) -> dict:

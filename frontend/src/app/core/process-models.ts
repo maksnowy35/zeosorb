@@ -117,7 +117,7 @@ export interface CycleBedIn {
   wall_mm: number;
   h_wall: number;
   k_bed: number;
-  tortuosity: number;
+  tortuosity: number | null;
   cells: number;
 }
 

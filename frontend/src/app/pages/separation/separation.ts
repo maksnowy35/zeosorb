@@ -75,7 +75,7 @@ export class Separation {
       column_diameter: 0.5,
       threshold: this.thresholdPct() / 100,
       mode: this.mode(),
-      tortuosity: 1,
+      tortuosity: null,
     }))).pipe(
       debounceTime(200),
       switchMap(req => this.api.separation(req).pipe(

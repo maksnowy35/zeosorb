@@ -2,7 +2,7 @@
 Binary separation estimate from two single-component breakthrough curves.
 
 Both components move with the gas velocity of the whole blend (linear chromatography),
-so with a linear isotherm each front travels at w / (1 + Ka/z) and the one with the lower
+so with a linear isotherm each front travels at w / (1 + K/z) and the one with the lower
 Henry constant (weak) leaves the bed first. Between the moment it is fully through
 (c/c0 >= 0.95) and the moment the strong one starts to break through (c/c0 = threshold),
 the outlet carries only the weak component - that's the "product window".

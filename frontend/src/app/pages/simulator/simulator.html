@@ -48,8 +48,15 @@
         <input type="range" min="1" max="20" step="0.5" [value]="thresholdPct()" (input)="set(thresholdPct, $event)">
       </label>
       <label class="slider">
-        <span>Pore tortuosity <b>{{ tortuosity().toFixed(1) }}</b></span>
-        <input type="range" min="1" max="6" step="0.1" [value]="tortuosity()" (input)="set(tortuosity, $event)">
+        <span>
+          Pore tortuosity
+          <b>
+            @if (tortuosity() === null) { <small>default</small> }
+            @else { <button type="button" class="link" (click)="tortuosity.set(null)">reset</button> }
+            {{ tau().toFixed(1) }}
+          </b>
+        </span>
+        <input type="range" min="1" max="6" step="0.1" [value]="tau()" (input)="set(tortuosity, $event)">
       </label>
     </fieldset>
 
@@ -61,14 +68,15 @@
         <button type="button" [class.on]="model() === 'both'" (click)="model.set('both')">Both</button>
       </div>
       <div class="segmented" role="group" aria-label="Calculation mode">
-        <button type="button" [class.on]="mode() === 'corrected'" (click)="mode.set('corrected')">Corrected</button>
-        <button type="button" [class.on]="mode() === 'thesis'" (click)="mode.set('thesis')">As in the thesis</button>
+        <button type="button" [class.on]="mode() === 'corrected'" (click)="setMode('corrected')">Corrected</button>
+        <button type="button" [class.on]="mode() === 'thesis'" (click)="setMode('thesis')">As in the thesis</button>
       </div>
       <p class="note">
         @if (mode() === 'thesis') {
           Reproduces the thesis tables, including the Knudsen unit slip and the channel-diameter film correlation.
         } @else {
-          Knudsen diffusion with pores in Å and a packed-bed film correlation (Wakao–Funazkri).
+          Henry constant per grain volume, voidage between the grains, diffusion through the grains' macropores
+          and a packed-bed film correlation (Wakao–Funazkri).
         }
       </p>
     </fieldset>

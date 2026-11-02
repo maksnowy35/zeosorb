@@ -22,9 +22,11 @@ export class Api {
   }
 
   matrix(params: BedParams): Observable<MatrixResponse> {
-    return this.http.get<MatrixResponse>(`${this.base}/matrix`, {
-      params: new HttpParams({ fromObject: { ...params } }),
-    });
+    const query: Record<string, string | number> = {};
+    for (const [k, v] of Object.entries(params)) {
+      if (v !== null && v !== undefined) query[k] = v;
+    }
+    return this.http.get<MatrixResponse>(`${this.base}/matrix`, { params: new HttpParams({ fromObject: query }) });
   }
 
   separation(req: SeparationRequest): Observable<SeparationResponse> {

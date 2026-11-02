@@ -4,6 +4,7 @@ import math
 from .constants import K_B, N_A, R_UNIV, SH_A, SH_B, SH_C
 
 ANGSTROM = 1e-10
+METRE = 1.0
 # The thesis spreadsheet converted the pore diameter with 1e-8 instead of 1e-10,
 # which made D_K (and therefore D') ~100x too large. Kept only for "thesis" mode
 # so the numbers in Tab. 8-11 can still be reproduced.
@@ -28,14 +29,28 @@ def molecular_diffusivity(molecule_size_a: float, molar_mass: float, p: float, t
     return 2.0 / 3.0 * math.sqrt(K_B * t / (math.pi * m)) * K_B * t / (math.pi * d**2 * p)
 
 
-def knudsen_diffusivity(pore_diameter_a: float, molar_mass: float, t: float, scale: float = ANGSTROM) -> float:
-    """DK = dp/3 * sqrt(8RT/(pi M))  [m2/s]."""
-    dp = pore_diameter_a * scale
+# rho D / mu for self-diffusion: 6/5 for rigid spheres, 6 A*/5 ~ 1.32 for Lennard-Jones gases
+# (A* = Omega(2,2)/Omega(1,1) ~ 1.1 over the usual range of reduced temperatures)
+CHAPMAN_ENSKOG_SELF = 1.32
+
+
+def self_diffusivity(viscosity: float, rho: float) -> float:
+    """Chapman-Enskog self-diffusion coefficient from the gas viscosity, D = 1.32 mu / rho [m2/s].
+
+    Uses the measured viscosity instead of a hard-sphere molecule size, which is the least
+    certain number in the kinetic-theory formula.
+    """
+    return CHAPMAN_ENSKOG_SELF * viscosity / rho
+
+
+def knudsen_diffusivity(pore_diameter: float, molar_mass: float, t: float, scale: float = ANGSTROM) -> float:
+    """DK = dp/3 * sqrt(8RT/(pi M))  [m2/s]. pore_diameter * scale is the diameter in metres."""
+    dp = pore_diameter * scale
     return dp / 3.0 * math.sqrt(8.0 * R_UNIV * t / (math.pi * molar_mass))
 
 
 def effective_diffusivity(d_mol: float, d_kn: float, tortuosity: float = 1.0) -> float:
-    """Series resistances 1/D' = 1/D + 1/DK, divided by the pore tortuosity factor."""
+    """Series resistances 1/D' = 1/D + 1/DK (Bosanquet), divided by the pore tortuosity factor."""
     return 1.0 / (1.0 / d_mol + 1.0 / d_kn) / tortuosity
 
 

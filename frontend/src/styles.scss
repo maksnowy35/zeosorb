@@ -167,6 +167,24 @@ legend {
     font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
+
+  small {
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: var(--steel);
+    margin-right: 0.3rem;
+  }
+}
+
+button.link {
+  border: 0;
+  background: none;
+  padding: 0;
+  margin-right: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--frost);
+  text-decoration: underline;
 }
 
 .note {

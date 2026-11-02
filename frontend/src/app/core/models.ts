@@ -48,7 +48,8 @@ export interface BedParams {
   column_diameter: number;
   threshold: number;
   mode: Mode;
-  tortuosity: number;
+  /** null = default of the mode (1 in thesis mode, the zeolite's macropore tortuosity otherwise) */
+  tortuosity: number | null;
 }
 
 export interface BreakthroughRequest extends BedParams {

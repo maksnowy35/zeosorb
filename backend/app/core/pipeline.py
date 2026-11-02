@@ -24,7 +24,9 @@ class BedInput:
     temperature: float = T_PROCESS         # K
     thresholds: tuple[float, ...] = field(default=(0.024, 0.05))
     mode: Mode = "corrected"
-    tortuosity: float = 1.0
+    # None = default of the mode: 1 in thesis mode (no tortuosity there),
+    # the zeolite's macropore tortuosity in corrected mode
+    tortuosity: float | None = None
     # m3/s at process conditions; overrides mass_flow / rho (used for blends, where all
     # components travel with the same gas velocity)
     volume_flow: float | None = None
@@ -99,13 +101,32 @@ def run(inp: BedInput) -> dict:
     # Ka = av / c* is per bed volume. Rosen's groups (and z = eps/(1-eps) next to them) are
     # written per grain volume, so the thesis counted the (1 - eps) factor twice and the
     # bed held (1 - eps) times less than the isotherm says. Corrected: K = Ka / (1 - eps).
-    k_grain = ka if thesis else ka / (1.0 - eps)
+    # the gas in the grain's macropores is held up as well (eps_M, small next to Ka)
+    k_grain = ka if thesis else zeo.macroporosity + ka / (1.0 - eps)
 
     # diffusion
-    d_mol = transport.molecular_diffusivity(ref.molecule_size, M, inp.pressure, inp.temperature)
-    pore_scale = transport.THESIS_PORE_SCALE if thesis else transport.ANGSTROM
-    d_kn = transport.knudsen_diffusivity(zeo.pore_diameter, M, inp.temperature, scale=pore_scale)
-    d_eff = transport.effective_diffusivity(d_mol, d_kn, inp.tortuosity)
+    if thesis:
+        # kinetic theory + Knudsen in the zeolite window, in series (thesis ch. 5.2)
+        tau = inp.tortuosity or 1.0
+        d_mol = transport.molecular_diffusivity(ref.molecule_size, M, inp.pressure, inp.temperature)
+        d_kn = transport.knudsen_diffusivity(zeo.pore_diameter, M, inp.temperature,
+                                             scale=transport.THESIS_PORE_SCALE)
+        d_eff = transport.effective_diffusivity(d_mol, d_kn, tau)
+        diffusion = {"D": d_mol, "DK": d_kn, "tau": tau, "D_eff": d_eff}
+    else:
+        # Grain = binder-bound bead: gas diffuses through the macropores and adsorbs on the
+        # crystals along the way (macropore control, Ruthven 1984; Hu et al. 2014). Knudsen
+        # flow is not defined in a 4-9 A window - that is configurational diffusion inside
+        # the crystals, assumed fast here - so D_K is taken in the macropores.
+        tau = inp.tortuosity or zeo.tortuosity
+        d_mol = transport.self_diffusivity(mu, rho)
+        d_kn = transport.knudsen_diffusivity(zeo.macropore_diameter, M, inp.temperature,
+                                             scale=transport.METRE)
+        d_pore = transport.effective_diffusivity(d_mol, d_kn, tau)
+        # Rosen writes diffusion in terms of the grain loading: K D' = eps_M D_pore
+        d_eff = zeo.macroporosity * d_pore / k_grain
+        diffusion = {"D": d_mol, "DK": d_kn, "tau": tau, "D_pore": d_pore,
+                     "eps_M": zeo.macroporosity, "D_eff": d_eff}
 
     # hydraulics
     area = math.pi * inp.column_diameter**2 / 4.0
@@ -142,7 +163,7 @@ def run(inp: BedInput) -> dict:
 
     return {
         "equilibrium": {"q": q, "c_star": rho, "av": av, "Ka": ka, "K_grain": k_grain},
-        "diffusion": {"D": d_mol, "DK": d_kn, "D_eff": d_eff},
+        "diffusion": diffusion,
         "hydraulics": {"area": area, "V": v_dot, "w_k": w_k, "w": w, "eps": eps, "z": z,
                        "t_residence": bed.t_ref},
         "film": {"Re": re, "Sc": sc, "Sh": sh, "kcg": kcg},

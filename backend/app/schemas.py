@@ -15,7 +15,10 @@ class BedParams(BaseModel):
     column_diameter: float = Field(COLUMN_DIAMETER, gt=0, le=5, description="m")
     threshold: float = Field(0.05, gt=0, lt=0.5, description="breakthrough criterion c/c0")
     mode: Mode = Field("corrected", description="'thesis' reproduces the original thesis tables")
-    tortuosity: float = Field(1.0, ge=1.0, le=10.0, description="pore tortuosity factor, D' / tau")
+    tortuosity: float | None = Field(
+        None, ge=1.0, le=10.0,
+        description="pore tortuosity factor; default 1 in thesis mode, the zeolite's macropore value in corrected mode",
+    )
 
 
 class BreakthroughRequest(BedParams):

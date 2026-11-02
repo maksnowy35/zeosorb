@@ -42,6 +42,21 @@ def test_knudsen_thesis_scale_reproduces_tab_8():
     assert dk == pytest.approx(4.0e-6, rel=0.02)
 
 
+@pytest.mark.parametrize("key, thesis_value", [("R32", 1.69e-5), ("R22", 8.53e-6), ("R125", 5.66e-6)])
+def test_chapman_enskog_close_to_kinetic_theory(key, thesis_value):
+    # D = 1.32 mu / rho from the viscosity should land within ~20 % of the thesis values
+    ref = materials.refrigerants()[key]
+    rho = transport.gas_density(ref.molar_mass, P_PROCESS, T_PROCESS)
+    d = transport.self_diffusivity(ref.viscosity, rho)
+    assert d == pytest.approx(thesis_value, rel=0.25)
+
+
+def test_knudsen_in_macropores():
+    # 0.59 um macropores: DK ~ 6e-5 m2/s, three orders above the (unphysical) window value
+    dk = transport.knudsen_diffusivity(5.9e-7, 86.47, T_PROCESS, scale=transport.METRE)
+    assert dk == pytest.approx(5.9e-5, rel=0.02)
+
+
 def test_wakao_funazkri_limit():
     assert transport.sherwood_wakao_funazkri(0.0, 1.0) == pytest.approx(2.0)
 

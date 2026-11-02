@@ -116,7 +116,7 @@ def matrix(
     column_diameter: float = Query(COLUMN_DIAMETER, gt=0, le=5),
     threshold: float = Query(0.05, gt=0, lt=0.5),
     mode: str = Query("corrected", pattern="^(corrected|thesis)$"),
-    tortuosity: float = Query(1.0, ge=1.0, le=10.0),
+    tortuosity: float | None = Query(None, ge=1.0, le=10.0),
 ):
     """Breakthrough time (Rosen) and key parameters for every pair. None = no isotherm data."""
     p = BedParams(mass_flow=mass_flow, bed_height=bed_height, column_diameter=column_diameter,

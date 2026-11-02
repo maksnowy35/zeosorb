@@ -37,6 +37,21 @@ def test_breakthrough_both_models_agree_roughly():
     assert len(prof["c"]) == len(prof["t"]) and len(prof["c"][0]) == len(prof["zeta"])
 
 
+def test_materials_have_derived_structure():
+    z = client.get(f"{API}/materials").json()["zeolites"]["4A"]
+    assert z["interparticle_voidage"] == pytest.approx(0.496, abs=0.002)
+    assert z["bed_porosity"] == 0.633
+
+
+def test_tortuosity_defaults_per_mode():
+    c = post("/breakthrough", refrigerant="R22", zeolite="4A", model="rosen").json()
+    t = post("/breakthrough", refrigerant="R22", zeolite="4A", model="rosen", mode="thesis").json()
+    assert c["diffusion"]["tau"] == pytest.approx(2.6) and t["diffusion"]["tau"] == 1.0
+    x = post("/breakthrough", refrigerant="R22", zeolite="4A", model="rosen", tortuosity=4.0).json()
+    assert x["diffusion"]["tau"] == 4.0
+    assert post("/breakthrough", refrigerant="R22", zeolite="4A", tortuosity=0.5).status_code == 422
+
+
 def test_breakthrough_missing_isotherm():
     assert post("/breakthrough", refrigerant="R22", zeolite="13X").status_code == 422
 

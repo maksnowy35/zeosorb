@@ -20,21 +20,47 @@ def test_corrected_stoichiometric_time_is_the_mass_balance():
     v_bed = hyd["area"] * 2.89
     t_capacity = eq["av"] * v_bed / (30.0 / 3600.0)
     assert t_capacity / 3600 == pytest.approx(2.23, abs=0.01)
-    assert res["t_stoich"] == pytest.approx(t_capacity + hyd["t_residence"], rel=1e-6)
+    # + gas in the space between the grains and in the grains' macropores
+    t_gas = hyd["t_residence"] * (1 + (1 - hyd["eps"]) / hyd["eps"] * res["diffusion"]["eps_M"])
+    assert res["t_stoich"] == pytest.approx(t_capacity + t_gas, rel=1e-6)
 
 
 def test_thesis_mode_misses_one_minus_eps_of_the_capacity():
     a, b = run("thesis"), run("corrected")
     gas = a["hydraulics"]["t_residence"]
     ratio = (a["t_stoich"] - gas) / (b["t_stoich"] - b["hydraulics"]["t_residence"])
-    assert ratio == pytest.approx(1.0 - 0.633, rel=0.01)
+    assert ratio == pytest.approx(1.0 - 0.633, rel=0.02)
     assert a["t_stoich"] / 3600 == pytest.approx(0.85, abs=0.02)
 
 
 def test_tortuosity_slows_diffusion():
-    a, b = run("corrected"), run("corrected", tortuosity=3.0)
-    assert b["diffusion"]["D_eff"] == pytest.approx(a["diffusion"]["D_eff"] / 3.0)
-    assert b["rosen"]["lambda"] < a["rosen"]["lambda"]
+    for mode in ("thesis", "corrected"):
+        a, b = run(mode, tortuosity=1.0), run(mode, tortuosity=3.0)
+        assert b["diffusion"]["D_eff"] == pytest.approx(a["diffusion"]["D_eff"] / 3.0)
+        assert b["rosen"]["lambda"] < a["rosen"]["lambda"]
+
+
+def test_default_tortuosity_depends_on_mode():
+    assert run("thesis")["diffusion"]["tau"] == 1.0
+    assert run("corrected")["diffusion"]["tau"] == pytest.approx(2.6)
+
+
+def test_pellet_model_rosen_mapping():
+    # K D' = eps_M D_pore, so lambda' and psi only see the macropore transport
+    res = run("corrected")
+    d, bed = res["diffusion"], res["bed"]
+    assert bed.ka * bed.d_eff == pytest.approx(d["eps_M"] * d["D_pore"], rel=1e-12)
+    # macropores of ~0.6 um: Knudsen and bulk diffusion are of the same order (transition regime)
+    assert 0.1 < d["D"] / d["DK"] < 10
+
+
+def test_corrected_mode_is_slower_and_wider_than_thesis():
+    a, b = run("thesis"), run("corrected")
+    # thesis: Knudsen with the 1e-8 slip made the grains ~100x too fast
+    assert b["bed"].ka * b["bed"].d_eff < a["bed"].ka * a["bed"].d_eff / 50
+    assert b["spreading"]["sigma_rel"] > a["spreading"]["sigma_rel"]
+    # ...but the bed holds more, so it breaks through later
+    assert b["breakthrough"]["0.05"] > a["breakthrough"]["0.05"]
 
 
 def test_spreading_budget_consistent_with_rosen():

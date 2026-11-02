@@ -62,7 +62,8 @@ export class Simulator {
   bedHeight = signal(2.89);
   columnDiameter = signal(0.5);
   thresholdPct = signal(5);
-  tortuosity = signal(1);
+  /** null follows the default of the mode, a number is a value set with the slider */
+  tortuosity = signal<number | null>(null);
   mode = signal<Mode>('corrected');
   model = signal<Model>('both');
   sweepParam = signal<SweepParameter>('mass_flow');
@@ -175,12 +176,15 @@ export class Simulator {
     ];
   });
 
+  /** tortuosity actually used by the last calculation */
+  tau = computed(() => this.tortuosity() ?? this.data()?.diffusion['tau'] ?? 1);
+
   sweepMarker = computed<Marker[]>(() => {
     const current: Record<SweepParameter, number> = {
       mass_flow: this.massFlow(),
       bed_height: this.bedHeight(),
       column_diameter: this.columnDiameter(),
-      tortuosity: this.tortuosity(),
+      tortuosity: this.tau(),
       threshold: this.thresholdPct() / 100,
     };
     return [{ x: current[this.sweepParam()], label: 'current', color: SIGNAL }];
@@ -259,6 +263,11 @@ export class Simulator {
       const z = Object.keys(m.zeolites).find(z => m.adsorption[z]?.[key] !== undefined);
       if (z) this.zeolite.set(z);
     }
+  }
+
+  setMode(m: Mode): void {
+    this.mode.set(m);
+    this.tortuosity.set(null);   // each mode has its own default
   }
 
   set(sig: { set(v: number): void }, e: Event): void {

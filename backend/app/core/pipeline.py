@@ -37,7 +37,7 @@ class Bed:
     w: float             # interstitial velocity, m/s
     z: float             # eps / (1 - eps)
     radius: float        # grain radius, m
-    ka: float            # Henry constant, -
+    ka: float            # Henry constant per grain volume (the K in the Rosen groups), -
     d_eff: float         # D', m2/s
     kcg: float           # film coefficient, m/s
     d_ax: float          # axial dispersion, m2/s
@@ -51,7 +51,7 @@ class Bed:
 
     @property
     def kappa(self) -> float:
-        """Capacity ratio Ka / z."""
+        """Capacity ratio K / z = solid hold-up / gas hold-up of the bed."""
         return self.ka / self.z
 
     @property
@@ -87,12 +87,19 @@ def run(inp: BedInput) -> dict:
 
     thesis = inp.mode == "thesis"
     M, mu = ref.molar_mass, ref.viscosity
-    eps, R, dz = zeo.bed_porosity, zeo.grain_radius, zeo.channel_diameter
+    R, dz = zeo.grain_radius, zeo.channel_diameter
     d_p = 2.0 * R
+    # The thesis uses its total voidage (grains' micropores included) as the space between
+    # the grains; corrected mode takes the interparticle voidage from the same ch. 4 data.
+    eps = zeo.bed_porosity if thesis else zeo.interparticle_voidage
 
     # equilibrium
     rho = transport.gas_density(M, inp.pressure, inp.temperature)
     ka, av = transport.henry_constant(q, zeo.bulk_density, M, rho)
+    # Ka = av / c* is per bed volume. Rosen's groups (and z = eps/(1-eps) next to them) are
+    # written per grain volume, so the thesis counted the (1 - eps) factor twice and the
+    # bed held (1 - eps) times less than the isotherm says. Corrected: K = Ka / (1 - eps).
+    k_grain = ka if thesis else ka / (1.0 - eps)
 
     # diffusion
     d_mol = transport.molecular_diffusivity(ref.molecule_size, M, inp.pressure, inp.temperature)
@@ -124,8 +131,8 @@ def run(inp: BedInput) -> dict:
     d_ax = transport.axial_dispersion(d_mol, w, d_p)
 
     # Rosen
-    lam, psi = rosen.parameters(d_eff, ka, inp.bed_height, z, w, R, kcg)
-    bed = Bed(height=inp.bed_height, w=w, z=z, radius=R, ka=ka, d_eff=d_eff,
+    lam, psi = rosen.parameters(d_eff, k_grain, inp.bed_height, z, w, R, kcg)
+    bed = Bed(height=inp.bed_height, w=w, z=z, radius=R, ka=k_grain, d_eff=d_eff,
               kcg=kcg, d_ax=d_ax, lam=lam, psi=psi)
     t_stoich = rosen.stoichiometric_time(lam, d_eff, R, inp.bed_height, w)
     times = {
@@ -134,9 +141,10 @@ def run(inp: BedInput) -> dict:
     }
 
     return {
-        "equilibrium": {"q": q, "c_star": rho, "av": av, "Ka": ka},
+        "equilibrium": {"q": q, "c_star": rho, "av": av, "Ka": ka, "K_grain": k_grain},
         "diffusion": {"D": d_mol, "DK": d_kn, "D_eff": d_eff},
-        "hydraulics": {"area": area, "V": v_dot, "w_k": w_k, "w": w, "z": z, "t_residence": bed.t_ref},
+        "hydraulics": {"area": area, "V": v_dot, "w_k": w_k, "w": w, "eps": eps, "z": z,
+                       "t_residence": bed.t_ref},
         "film": {"Re": re, "Sc": sc, "Sh": sh, "kcg": kcg},
         "film_correlation": correlation,
         "rosen": {"lambda": lam, "psi": psi, "spread": rosen.spread(lam, psi)},

@@ -13,16 +13,22 @@ def test_thesis_mode_reproduces_tab_9():
     assert res["diffusion"]["D_eff"] == pytest.approx(2.7e-6, rel=0.02)
 
 
-def test_stoichiometric_time_does_not_depend_on_mode():
-    # t_stoich = H/w (1 + Ka/z) - pure mass balance, kinetics only change the spread
-    a, b = run("thesis"), run("corrected")
-    assert a["t_stoich"] == pytest.approx(b["t_stoich"], rel=1e-9)
+def test_corrected_stoichiometric_time_is_the_mass_balance():
+    # bed capacity / feed: q M rho_n V_bed / m_dot, plus the gas hold-up H/w
+    res = run("corrected")
+    eq, hyd = res["equilibrium"], res["hydraulics"]
+    v_bed = hyd["area"] * 2.89
+    t_capacity = eq["av"] * v_bed / (30.0 / 3600.0)
+    assert t_capacity / 3600 == pytest.approx(2.23, abs=0.01)
+    assert res["t_stoich"] == pytest.approx(t_capacity + hyd["t_residence"], rel=1e-6)
 
 
-def test_corrected_mode_gives_wider_front():
+def test_thesis_mode_misses_one_minus_eps_of_the_capacity():
     a, b = run("thesis"), run("corrected")
-    assert b["spreading"]["sigma_rel"] > a["spreading"]["sigma_rel"]
-    assert b["breakthrough"]["0.05"] < a["breakthrough"]["0.05"]
+    gas = a["hydraulics"]["t_residence"]
+    ratio = (a["t_stoich"] - gas) / (b["t_stoich"] - b["hydraulics"]["t_residence"])
+    assert ratio == pytest.approx(1.0 - 0.633, rel=0.01)
+    assert a["t_stoich"] / 3600 == pytest.approx(0.85, abs=0.02)
 
 
 def test_tortuosity_slows_diffusion():

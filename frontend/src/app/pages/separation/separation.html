@@ -76,9 +76,9 @@
     @if (data(); as d) {
       <p class="verdict" aria-live="polite">
         @if (d.result.window > 0) {
-          On zeolite {{ d.result.zeolite }}, <span [style.color]="refColor(d.result.weak)">{{ d.result.weak }}</span> comes out first.
+          On zeolite {{ d.result.zeolite }}, <span class="tag"><i [style.background]="refColor(d.result.weak)"></i>{{ d.result.weak }}</span> comes out first.
           For <strong>{{ duration(d.result.window) }}</strong> the outlet carries {{ d.result.weak }} alone,
-          then <span [style.color]="refColor(d.result.strong)">{{ d.result.strong }}</span> breaks through.
+          then <span class="tag"><i [style.background]="refColor(d.result.strong)"></i>{{ d.result.strong }}</span> breaks through.
         } @else {
           On zeolite {{ d.result.zeolite }} the fronts overlap by <strong>{{ duration(-d.result.window) }}</strong>:
           {{ d.result.strong }} breaks through before {{ d.result.weak }} is fully out. A longer bed or a lower flow helps.

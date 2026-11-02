@@ -4,7 +4,7 @@
   --ink: #1d2a33;
   --steel: #5b6b76;
   --rule: #cfd6d3;
-  --frost: #2f7fa8;
+  --frost: #1a78bd;
   --ochre: #c8a24a;
   --signal: #b4452f;
   --font: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -204,5 +204,18 @@ button.link {
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
+  }
+}
+
+.tag {
+  white-space: nowrap;
+
+  i {
+    display: inline-block;
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    margin-right: 0.18em;
+    vertical-align: 0.12em;
   }
 }

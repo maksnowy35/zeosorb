@@ -5,7 +5,7 @@ import { catchError, debounceTime, map, of, switchMap } from 'rxjs';
 import { Api } from '../../core/api';
 import { duration, eventValue, num } from '../../core/format';
 import { Mode, SeparationResponse } from '../../core/models';
-import { OCHRE, refColor, SIGNAL, withAlpha } from '../../core/palette';
+import { OCHRE, refColor, SIGNAL, STEEL, withAlpha } from '../../core/palette';
 import { Band, LineChart, Marker, Series } from '../../shared/line-chart';
 
 interface Preset {
@@ -111,8 +111,8 @@ export class Separation {
     const r = this.data()?.result;
     if (!r) return [];
     return [
-      { y: 0.95, label: 'weak one fully through (95 %)', color: refColor(r.weak) },
-      { y: this.thresholdPct() / 100, label: `strong one breaks through (${this.thresholdPct()} %)`, color: refColor(r.strong) },
+      { y: 0.95, label: `${r.weak} fully through (95 %)`, color: STEEL },
+      { y: this.thresholdPct() / 100, label: `${r.strong} breaks through (${this.thresholdPct()} %)`, color: STEEL },
     ];
   });
 

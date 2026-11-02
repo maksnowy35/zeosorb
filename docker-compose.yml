@@ -1,0 +1,12 @@
+services:
+  api:
+    build: ./backend
+    restart: unless-stopped
+
+  web:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+    restart: unless-stopped

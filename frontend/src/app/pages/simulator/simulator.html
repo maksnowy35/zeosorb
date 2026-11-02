@@ -73,7 +73,8 @@
       </div>
       <p class="note">
         @if (mode() === 'thesis') {
-          Reproduces the thesis tables, including the Knudsen unit slip and the channel-diameter film correlation.
+          Reproduces the thesis tables as they are: Henry constant per bed volume, total voidage, Knudsen in the
+          zeolite window with the unit slip, and the channel-diameter film correlation.
         } @else {
           Henry constant per grain volume, voidage between the grains, diffusion through the grains' macropores
           and a packed-bed film correlation (Wakao–Funazkri).
@@ -90,7 +91,7 @@
     @if (data(); as d) {
       <header class="readout" aria-live="polite">
         <h1>
-          <span [style.color]="refColor(d.request.refrigerant)">{{ d.request.refrigerant }}</span>
+          <span class="tag"><i [style.background]="refColor(d.request.refrigerant)"></i>{{ d.request.refrigerant }}</span>
           on zeolite {{ d.request.zeolite }} reaches {{ pct(d.request.threshold, d.request.threshold < 0.1 ? 1 : 0) }}
           at the outlet after {{ duration(d.t_breakthrough.rosen) }}
         </h1>
@@ -124,10 +125,12 @@
         <div class="bar" role="img"
              [attr.aria-label]="'Diffusion into grains ' + pct(d.spreading['mass_transfer_share']) + ', axial dispersion ' + pct(1 - d.spreading['mass_transfer_share'])">
           <span class="mt" [style.flex-grow]="d.spreading['mass_transfer_share']">
-            diffusion into grains {{ pct(d.spreading['mass_transfer_share']) }}
+            {{ d.spreading['mass_transfer_share'] >= 0.2 ? 'diffusion into grains' : '' }}
+            {{ pct(d.spreading['mass_transfer_share']) }}
           </span>
           <span class="ax" [style.flex-grow]="1 - d.spreading['mass_transfer_share']">
-            axial dispersion {{ pct(1 - d.spreading['mass_transfer_share']) }}
+            {{ d.spreading['mass_transfer_share'] <= 0.8 ? 'axial dispersion' : '' }}
+            {{ pct(1 - d.spreading['mass_transfer_share']) }}
           </span>
         </div>
       </div>

@@ -43,7 +43,7 @@
     <!-- mass transfer zone -->
     @if (front(); as f) {
       <line [attr.x1]="geo.LEFT - 4" [attr.x2]="geo.RIGHT + 4" [attr.y1]="f.y" [attr.y2]="f.y" class="front" />
-      <text [attr.x]="geo.RIGHT + 3" [attr.y]="f.y - 5" class="front-label" text-anchor="end">front</text>
+      <text [attr.x]="geo.RIGHT + 6" [attr.y]="f.y + 4" class="front-label">front</text>
     }
 
     <!-- profiles along the bed -->

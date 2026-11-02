@@ -53,7 +53,7 @@ def health():
 def get_materials():
     return {
         "refrigerants": {k: asdict(v) for k, v in materials.refrigerants().items()},
-        "zeolites": {k: asdict(v) for k, v in materials.zeolites().items()},
+        "zeolites": {k: {**asdict(v), **v.derived()} for k, v in materials.zeolites().items()},
         "adsorption": materials.adsorption(),
         "blends": materials.blends(),
     }

@@ -20,7 +20,19 @@ export interface Zeolite {
   bed_porosity: number;
   bulk_density: number;
   channel_diameter: number;
+  grain_volume: number;
+  grain_mass: number;
+  pore_volume: number;
+  macroporosity: number;
+  macropore_diameter: number;
+  tortuosity: number;
   source: string;
+  pellet_source: string;
+  // derived from the thesis ch. 4 measurements
+  envelope_density: number;
+  thesis_particle_density: number;
+  interparticle_voidage: number;
+  micropore_fraction: number;
 }
 
 export interface Materials {

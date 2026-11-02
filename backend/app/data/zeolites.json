@@ -6,7 +6,14 @@
     "bed_porosity": 0.633,
     "bulk_density": 827.9,
     "channel_diameter": 2.53e-8,
-    "source": "own measurement (thesis ch. 4.1)"
+    "grain_volume": 3.35e-8,
+    "grain_mass": 5.5e-5,
+    "pore_volume": 1.65e-4,
+    "macroporosity": 0.27,
+    "macropore_diameter": 5.9e-7,
+    "tortuosity": 2.6,
+    "source": "own measurement (thesis ch. 4.1), pore volume after [6]",
+    "pellet_source": "binder macropores of commercial 13X beads (Hu et al. 2014, small beads), assumed"
   },
   "5A": {
     "name": "Zeolite 5A",
@@ -15,7 +22,14 @@
     "bed_porosity": 0.72,
     "bulk_density": 650.0,
     "channel_diameter": 3.61e-8,
-    "source": "literature (thesis ch. 4.2)"
+    "grain_volume": 6.54e-8,
+    "grain_mass": 1.07e-4,
+    "pore_volume": 1.8e-4,
+    "macroporosity": 0.27,
+    "macropore_diameter": 5.9e-7,
+    "tortuosity": 2.6,
+    "source": "literature (thesis ch. 4.2, [17])",
+    "pellet_source": "binder macropores of commercial 13X beads (Hu et al. 2014, small beads), assumed"
   },
   "13X": {
     "name": "Zeolite 13X",
@@ -24,6 +38,13 @@
     "bed_porosity": 0.45,
     "bulk_density": 1071.2,
     "channel_diameter": 4.09e-8,
-    "source": "own measurement (thesis ch. 4.3)"
+    "grain_volume": 2.21e-7,
+    "grain_mass": 4.1e-4,
+    "pore_volume": 3.0e-5,
+    "macroporosity": 0.27,
+    "macropore_diameter": 5.9e-7,
+    "tortuosity": 2.6,
+    "source": "own measurement (thesis ch. 4.3), pore volume after [20]",
+    "pellet_source": "binder macropores of commercial 13X beads (Hu et al. 2014, small beads)"
   }
 }

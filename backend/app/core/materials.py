@@ -20,14 +20,57 @@ class Refrigerant:
 
 @dataclass(frozen=True)
 class Zeolite:
+    """
+    One adsorbent. The first block is what the thesis uses directly; grain_volume,
+    grain_mass and pore_volume are the raw numbers from thesis ch. 4 and everything
+    about the bed structure is derived from them below.
+
+    Pellet (binder macropore) properties are not in the thesis - they are typical
+    values for commercial beads, see pellet_source.
+    """
     key: str
     name: str
-    grain_radius: float      # m
-    pore_diameter: float     # Angstrom
-    bed_porosity: float      # -
-    bulk_density: float      # kg/m3
-    channel_diameter: float  # m (equivalent channel diameter dz)
+    grain_radius: float        # m
+    pore_diameter: float       # Angstrom, zeolite window
+    bed_porosity: float        # -, as computed in the thesis: (rho_p - rho_n) / rho_p
+    bulk_density: float        # kg/m3, rho_n
+    channel_diameter: float    # m (equivalent channel diameter dz)
+    grain_volume: float        # m3, V_k of one grain
+    grain_mass: float          # kg, m_k of one grain
+    pore_volume: float         # m3/kg, zeolite micropore volume v_p
+    macroporosity: float       # -, binder macropores in the grain, eps_M
+    macropore_diameter: float  # m
+    tortuosity: float          # -, macropore tortuosity factor
     source: str
+    pellet_source: str
+
+    @property
+    def envelope_density(self) -> float:
+        """Grain mass over the whole grain volume, m_k / V_k [kg/m3]."""
+        return self.grain_mass / self.grain_volume
+
+    @property
+    def thesis_particle_density(self) -> float:
+        """rho_p from the thesis: m_k / (V_k - V_por), the pores taken out of the grain volume."""
+        return self.grain_mass / (self.grain_volume - self.pore_volume * self.grain_mass)
+
+    @property
+    def interparticle_voidage(self) -> float:
+        """Space between the grains only, 1 - rho_n / (m_k / V_k)."""
+        return 1.0 - self.bulk_density / self.envelope_density
+
+    @property
+    def micropore_fraction(self) -> float:
+        """Zeolite micropore volume per grain volume, v_p m_k / V_k."""
+        return self.pore_volume * self.envelope_density
+
+    def derived(self) -> dict[str, float]:
+        return {
+            "envelope_density": self.envelope_density,
+            "thesis_particle_density": self.thesis_particle_density,
+            "interparticle_voidage": self.interparticle_voidage,
+            "micropore_fraction": self.micropore_fraction,
+        }
 
 
 def _load(name: str) -> dict:

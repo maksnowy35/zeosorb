@@ -88,3 +88,47 @@ ul {
   font-size: 0.92rem;
   color: var(--steel);
 }
+
+.aside {
+  font-size: 0.9rem;
+  color: var(--steel);
+}
+
+.table-wrap {
+  position: relative;
+  overflow-x: auto;
+}
+
+table.audit {
+  font-size: 0.88rem;
+  min-width: 44rem;
+
+  td:first-child {
+    width: 24%;
+  }
+
+  td:last-child {
+    width: 18%;
+    color: var(--ink);
+    font-weight: 500;
+  }
+}
+
+.numbered {
+  list-style: none;
+  padding-left: 0;
+
+  b {
+    font-weight: 600;
+    color: var(--ink);
+    margin-right: 0.2rem;
+  }
+}
+
+h3 + .note {
+  margin-top: 0;
+}
+
+section[id] {
+  scroll-margin-top: 1rem;
+}

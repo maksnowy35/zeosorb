@@ -10,96 +10,219 @@
 
   <section>
     <h2>The calculation chain</h2>
+    <p>Formulas as used in corrected mode. Where thesis mode does something else, it says so; the
+      <a href="#audit">audit</a> below explains why it was changed.</p>
     <ol class="chain">
       <li>
         <h3>Equilibrium</h3>
-        <p>The adsorbed amount <var>q</var> at 0.8 bar comes from published isotherms. With the bulk density of the bed it
-          becomes the adsorbed mass per bed volume, and over the gas concentration it gives the Henry constant.</p>
-        <p class="eq"><var>c</var>* = <var>pM</var> / <var>RT</var> &nbsp;&nbsp; <var>a<sub>v</sub></var> = <var>q</var> &rho;<sub>bulk</sub> <var>M</var> &nbsp;&nbsp; <var>K<sub>a</sub></var> = <var>a<sub>v</sub></var> / <var>c</var>*</p>
+        <p>The adsorbed amount <var>q</var> at 0.8 bar comes from published isotherms (thesis Tab. 2). With the bulk density of
+          the bed it becomes the adsorbed mass per bed volume, and over the gas concentration it gives the Henry constant
+          <var>K<sub>a</sub></var>. Rosen's model needs it per volume of the grains, plus the gas held in the grains' macropores.</p>
+        <p class="eq"><var>c</var>* = <var>pM</var> / <var>RT</var> &nbsp;&nbsp; <var>a<sub>v</sub></var> = <var>q</var> &rho;<sub>n</sub> <var>M</var> &nbsp;&nbsp; <var>K<sub>a</sub></var> = <var>a<sub>v</sub></var> / <var>c</var>* &nbsp;&nbsp; <var>K</var> = <var>K<sub>a</sub></var> / (1 &minus; &epsilon;) + &epsilon;<sub>M</sub></p>
+        <p class="aside">Thesis: <var>K</var> = <var>K<sub>a</sub></var>.</p>
       </li>
       <li>
-        <h3>Diffusion</h3>
-        <p>Molecular diffusion from the kinetic theory of gases, Knudsen diffusion in the zeolite pores, combined in series
-          (and divided by the pore tortuosity if you set one).</p>
-        <p class="eq">1 / <var>D</var>&prime; = 1 / <var>D</var> + 1 / <var>D<sub>K</sub></var> &nbsp;&nbsp; <var>D<sub>K</sub></var> = <var>d<sub>p</sub></var>/3 &middot; &radic;(8<var>RT</var> / &pi;<var>M</var>)</p>
+        <h3>Bed structure</h3>
+        <p>From the measurements in chapter 4 of the thesis: grain volume <var>V<sub>k</sub></var>, grain mass
+          <var>m<sub>k</sub></var>, bulk density &rho;<sub>n</sub> of a poured bed and the zeolite pore volume
+          <var>v<sub>p</sub></var>. The space between the grains follows from the bulk and the grain (envelope) density.</p>
+        <p class="eq">&epsilon; = 1 &minus; &rho;<sub>n</sub> / (<var>m<sub>k</sub></var> / <var>V<sub>k</sub></var>) &nbsp;&nbsp; <var>z</var> = &epsilon; / (1 &minus; &epsilon;) &nbsp;&nbsp; <var>w</var> = <var>&#7745;</var> / (&rho; <var>A</var> &epsilon;)</p>
+        <p class="aside">Thesis: &epsilon; = (&rho;<sub>p</sub> &minus; &rho;<sub>n</sub>) / &rho;<sub>p</sub> with &rho;<sub>p</sub> = <var>m<sub>k</sub></var> / (<var>V<sub>k</sub></var> &minus; <var>v<sub>p</sub>m<sub>k</sub></var>).</p>
+      </li>
+      <li>
+        <h3>Transport into the grain</h3>
+        <p>The grains are beads of small zeolite crystals held together by a binder. Gas reaches the crystals through the
+          binder's macropores (around half a micrometre) and adsorbs along the way, which is what normally limits the uptake of
+          such beads (Ruthven 1984; Hu et al. 2014). In the macropores molecular and Knudsen diffusion act in series [11] and the
+          path is longer by the tortuosity &tau;. Diffusion inside the crystals is taken as fast.</p>
+        <p class="eq"><var>D</var> = 1.32 &mu; / &rho; &nbsp;&nbsp; <var>D<sub>K</sub></var> = <var>d<sub>M</sub></var>/3 &middot; &radic;(8<var>RT</var> / &pi;<var>M</var>) &nbsp;&nbsp; 1 / <var>D<sub>p</sub></var> = &tau; (1 / <var>D</var> + 1 / <var>D<sub>K</sub></var>)</p>
+        <p class="eq"><var>K D</var>&prime; = &epsilon;<sub>M</sub> <var>D<sub>p</sub></var></p>
+        <p>The first is the Chapman–Enskog result for self-diffusion [9], &rho;<var>D</var>/&mu; = 6<var>A</var>*/5 &asymp; 1.32,
+          which only needs the measured viscosity. The last line maps the macropore model onto Rosen's grain diffusion: both give
+          the same flux into a grain for a linear isotherm.</p>
+        <p class="aside">Thesis: kinetic theory of hard spheres for <var>D</var>, Knudsen in the zeolite window
+          (<var>d<sub>p</sub></var> = 4–9 Å) for <var>D<sub>K</sub></var>, 1 / <var>D</var>&prime; = 1 / <var>D</var> + 1 / <var>D<sub>K</sub></var>, no tortuosity.</p>
       </li>
       <li>
         <h3>Flow and film</h3>
-        <p>The mass flow gives the gas velocity between the grains. Reynolds and Schmidt numbers go into a Sherwood correlation,
-          which gives the film mass transfer coefficient <var>k<sub>c,g</sub></var>.</p>
-        <p class="eq"><var>w</var> = <var>&#7745;</var> / (&rho; <var>A</var> &epsilon;) &nbsp;&nbsp; <var>k<sub>c,g</sub></var> = Sh <var>D</var> / <var>L</var></p>
+        <p>Reynolds and Schmidt numbers go into a Sherwood correlation for packed beds of spheres, which gives the film mass
+          transfer coefficient <var>k<sub>c,g</sub></var>.</p>
+        <p class="eq">Sh = 2 + 1.1 Sc<sup>1/3</sup> Re<sub>p</sub><sup>0.6</sup> &nbsp;&nbsp; Re<sub>p</sub> = <var>w<sub>k</sub> d<sub>p</sub></var> &rho; / &mu; &nbsp;&nbsp; <var>k<sub>c,g</sub></var> = Sh <var>D</var> / <var>d<sub>p</sub></var></p>
+        <p class="aside">Thesis: Sh = 0.395 Re<sup>0.54</sup> Sc<sup>0.33</sup> [3] with the equivalent channel diameter <var>d<sub>z</sub></var> as the length.</p>
       </li>
       <li>
         <h3>Rosen solution</h3>
         <p>For a linear isotherm, diffusion into spherical grains and an external film, Rosen gave a closed form for the outlet
-          curve. Two dimensionless groups decide its shape.</p>
-        <p class="eq">&lambda;&prime; = 3<var>D</var>&prime;<var>K<sub>a</sub>H</var> / (<var>z w R</var>²) &nbsp;&nbsp; &psi; = <var>D</var>&prime;<var>K<sub>a</sub></var> / (<var>R k<sub>c,g</sub></var>) &nbsp;&nbsp; <var>z</var> = &epsilon; / (1 &minus; &epsilon;)</p>
-        <p class="eq"><var>c</var>/<var>c</var>₀ = &frac12; [1 + erf(<var>E</var>)] &nbsp;&nbsp; <var>E</var> = (3&tau;&prime; / 2&lambda;&prime; &minus; 1) / (2 &radic;((1 + 5&psi;) / 5&lambda;&prime;))</p>
+          curve [2], [3]. Two dimensionless groups decide its shape.</p>
+        <p class="eq">&lambda;&prime; = 3<var>D</var>&prime;<var>KH</var> / (<var>z w R</var>²) &nbsp;&nbsp; &psi; = <var>D</var>&prime;<var>K</var> / (<var>R k<sub>c,g</sub></var>)</p>
+        <p class="eq"><var>c</var>/<var>c</var>₀ = &frac12; [1 + erf(<var>E</var>)] &nbsp;&nbsp; <var>E</var> = (3&tau;&prime; / 2&lambda;&prime; &minus; 1) / (2 &radic;((1 + 5&psi;) / 5&lambda;&prime;)) &nbsp;&nbsp; &tau;&prime; = 2<var>D</var>&prime; / <var>R</var>² (<var>t</var> &minus; <var>H</var>/<var>w</var>)</p>
+        <p>At <var>c</var>/<var>c</var>₀ = 0.5 this is exactly the mass balance: bed capacity over feed, plus the gas residence time.</p>
       </li>
       <li>
         <h3>Numerical check</h3>
         <p>Rosen ignores axial dispersion and only gives the outlet. The numerical model solves the column equations directly
           with a linear driving force for the grains and Edwards–Richardson dispersion, on 200 finite volumes.
-          With <var>k</var><sub>LDF</sub> = 15<var>D</var>&prime; / (<var>R</var>²(1 + 5&psi;)) it has the same front width as Rosen
-          when dispersion is switched off, and the test suite checks exactly that.</p>
+          With <var>k</var><sub>LDF</sub> = 15<var>D</var>&prime; / (<var>R</var>²(1 + 5&psi;)) (Glueckauf 1955) it has the same
+          front width as Rosen when dispersion is switched off, and the test suite checks exactly that. Why such a simple
+          driving force works so well is discussed by Sircar &amp; Hufton (2000).</p>
       </li>
     </ol>
   </section>
 
-  <section>
-    <h2>Corrected and thesis modes</h2>
-    <p>Rewriting the spreadsheet in Python surfaced two things worth fixing. The thesis mode keeps them, so every table in the
-      thesis can still be reproduced.</p>
-    <table>
-      <thead>
-        <tr><th scope="col"></th><th scope="col">As in the thesis</th><th scope="col">Corrected</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th scope="row">Pore diameter in <var>D<sub>K</sub></var></th>
-          <td>converted with 10⁻⁸ m/Å, so <var>D<sub>K</sub></var> and <var>D</var>&prime; are about 100&times; too high</td>
-          <td>10⁻¹⁰ m/Å</td>
-        </tr>
-        <tr>
-          <th scope="row">Film coefficient</th>
-          <td>Sh = 0.395 Re<sup>0.54</sup> Sc<sup>0.33</sup> with a nanometre channel diameter, Re ≈ 10⁻⁴</td>
-          <td>Wakao–Funazkri, Sh = 2 + 1.1 Sc<sup>1/3</sup> Re<sub>p</sub><sup>0.6</sup> with the grain diameter</td>
-        </tr>
-        <tr>
-          <th scope="row"><var>E</var>(<var>c</var>/<var>c</var>₀)</th>
-          <td>read from a table (E = &minus;1.2 for 5 %)</td>
-          <td>exact inverse error function (E = &minus;1.163 for 5 %)</td>
-        </tr>
-      </tbody>
-    </table>
-    <p>The stoichiometric time, where half the feed comes through, depends only on the mass balance and is identical in both
-      modes. The corrections change how wide the front is, so they move the 5 % breakthrough time by roughly 10 to 15 %.</p>
+  <section id="audit">
+    <h2>Thesis audit</h2>
+    <p>Rewriting the spreadsheet in Python and checking it against the mass balance and current adsorption literature
+      surfaced the points below. Thesis mode keeps all of them, so every table in the thesis can still be reproduced;
+      corrected mode fixes them. Effects are for R22 on 4A, 30 kg/h, 5 % breakthrough.</p>
+    <div class="table-wrap">
+      <table class="audit">
+        <thead>
+          <tr>
+            <th scope="col">In the thesis</th>
+            <th scope="col">Why it matters</th>
+            <th scope="col">Corrected mode</th>
+            <th scope="col">Effect</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><var>K<sub>a</sub></var> = <var>a<sub>v</sub></var>/<var>c</var>* (per bed volume) used in the Rosen groups next to <var>z</var> = &epsilon;/(1 &minus; &epsilon;)</td>
+            <td>Rosen's <var>K</var> is per grain volume, so the bed was given (1 &minus; &epsilon;) of its capacity. The mass balance
+              says 67 kg of R22 fit in the bed, 2.2 h of feed.</td>
+            <td><var>K</var> = <var>K<sub>a</sub></var>/(1 &minus; &epsilon;) + &epsilon;<sub>M</sub>; a test checks <var>t</var><sub>s</sub> against capacity / feed</td>
+            <td>stoichiometric time 0.85 h &rarr; 2.3 h, breakthrough 50 min &rarr; 1.9 h</td>
+          </tr>
+          <tr>
+            <td>&epsilon; = (&rho;<sub>p</sub> &minus; &rho;<sub>n</sub>)/&rho;<sub>p</sub> = 0.633, with the micropores taken out of &rho;<sub>p</sub></td>
+            <td>That is the total voidage, space between the grains plus the zeolite pores. The gas flows only between the grains.</td>
+            <td>&epsilon; = 1 &minus; &rho;<sub>n</sub>/(<var>m<sub>k</sub></var>/<var>V<sub>k</sub></var>) = 0.496 from the same measurements</td>
+            <td>gas velocity between the grains +28 %</td>
+          </tr>
+          <tr>
+            <td>Pore diameter converted with 10⁻⁸ m/Å in <var>D<sub>K</sub></var> (Tab. 8)</td>
+            <td><var>D<sub>K</sub></var> and <var>D</var>&prime; about 100&times; too high, the front almost a step.</td>
+            <td>Not used any more, see the next row</td>
+            <td>part of the change in <var>K D</var>&prime;</td>
+          </tr>
+          <tr>
+            <td>Knudsen diffusion in the 4–9 Å zeolite window, in series with molecular diffusion</td>
+            <td>Knudsen flow needs a pore much wider than the molecule. In micropores (&lt; 2 nm, Thommes et al. 2015) the molecule
+              never leaves the field of the framework: that is activated, configurational diffusion (Kärger, Ruthven &amp; Theodorou 2012).
+              Uptake in commercial beads is often limited by the binder macropores instead.</td>
+            <td>Macropore model, <var>K D</var>&prime; = &epsilon;<sub>M</sub><var>D<sub>p</sub></var>, macropore data of commercial beads (Hu et al. 2014)</td>
+            <td><var>K D</var>&prime; 1.5&middot;10⁻⁴ &rarr; 9&middot;10⁻⁷ m²/s, front &plusmn;3 % &rarr; &plusmn;10 % of <var>t</var><sub>s</sub></td>
+          </tr>
+          <tr>
+            <td><var>D</var> from kinetic theory: the text uses a 3&radic;&pi;/8 prefactor (1.69&middot;10⁻⁵ m²/s for R22), Tab. 8 the 2/3 form (8.5&middot;10⁻⁶)</td>
+            <td>Two versions of the same formula, and both hinge on a hard-sphere diameter that is not well defined for polar molecules.</td>
+            <td>Chapman–Enskog via the viscosity, &rho;<var>D</var>/&mu; = 1.32 [9]</td>
+            <td><var>D</var> = 1.0&middot;10⁻⁵ m²/s, between the two</td>
+          </tr>
+          <tr>
+            <td>Film: Sh = 0.395 Re<sup>0.54</sup> Sc<sup>0.33</sup> with <var>d<sub>z</sub></var> = 4&epsilon;/<var>a<sub>s</sub></var> from the micropore surface (2.5&middot;10⁻⁸ m in Tab. 4; ch. 4 gives 4.6&middot;10⁻⁶ m)</td>
+            <td>The gas between the grains sees the outer surface of millimetre grains, not the micropore walls; Re &asymp; 10⁻⁴ is far outside any
+              packed-bed correlation.</td>
+            <td>Wakao–Funazkri with the grain diameter, Re<sub>p</sub> &asymp; 10</td>
+            <td><var>k<sub>c,g</sub></var> 0.88 &rarr; 0.015 m/s; &psi; stays small, the film is still a minor resistance</td>
+          </tr>
+          <tr>
+            <td>No tortuosity; ch. 5.2 notes it should be included</td>
+            <td>Pores in a grain are not straight. [8] found the tortuosity in the Knudsen regime clearly larger than in the bulk regime, so one
+              factor for both is a simplification.</td>
+            <td>&tau; = 2.6 for the macropores (2.2–2.9 in Hu et al. 2014), adjustable</td>
+            <td>included in the row above</td>
+          </tr>
+          <tr>
+            <td><var>E</var>(<var>c</var>/<var>c</var>₀) read from a table (Tab. 12)</td>
+            <td>Rounded, and only available for a few thresholds.</td>
+            <td>exact inverse error function</td>
+            <td><var>E</var> = &minus;1.163 instead of &minus;1.2 at 5 %</td>
+          </tr>
+          <tr>
+            <td>Pore volume of 13X, 0.03 cm³/g [20]; specific surface of 4A, 30–60 m²/g [14]</td>
+            <td>[20] describes TiO₂-coated 13X used as a face-mask filler, and its value is an order of magnitude below the micropore volume
+              usually reported for 13X (a few tenths of cm³/g, Breck 1974). [14] is a clinoptilolite data sheet.</td>
+            <td>Not needed: the interparticle voidage uses only <var>V<sub>k</sub></var>, <var>m<sub>k</sub></var> and &rho;<sub>n</sub></td>
+            <td>none in corrected mode</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The chain itself (isotherm point &rarr; Henry constant &rarr; diffusion &rarr; film &rarr; Rosen) is the standard way to size a
+      bed for a first estimate, and all inputs come from the same measurements as in the thesis. The simulator shows every
+      intermediate value in both modes next to each other.</p>
   </section>
 
   <section>
     <h2>What the model leaves out</h2>
     <ul>
       <li>Only one refrigerant at a time. Mixtures need competitive isotherms (IAST or multicomponent Langmuir); the
-        <a routerLink="/separation">separation page</a> overlays single curves as a first estimate.</li>
+        <a routerLink="/separation">separation page</a> overlays single curves as a first estimate. Yancey et al. (2022) review
+        refrigerant isotherms on zeolites and other sorbents.</li>
       <li>A linear isotherm through one point at 0.8 bar. Near saturation the real isotherm is curved and the front self-sharpens.</li>
-      <li>Constant temperature. Heat of adsorption warms the bed and shortens the breakthrough in practice.</li>
-      <li>Knudsen diffusion in 4&ndash;9 Å pores. In pores this narrow transport is activated (configurational) diffusion,
-        so <var>D</var>&prime; here is an upper bound.</li>
-      <li>Gas properties at 100 °C only, viscosities from CoolProp.</li>
+      <li>Constant temperature. Heat of adsorption warms the bed and shortens the breakthrough in practice; at high concentrations
+        the uptake of zeolite beads can become limited by heat removal rather than diffusion (Hu et al. 2014).</li>
+      <li>An undiluted feed. Rosen and the LDF model are trace-component theories with a constant gas velocity. With pure refrigerant
+        the gas slows down as it is adsorbed, and the flux into the macropores is Knudsen plus viscous flow rather than diffusion
+        through a carrier gas. Treat the shape of the front as indicative; the stoichiometric time does not depend on it.</li>
+      <li>Diffusion inside the zeolite crystals is taken as fast. For R22 and R125 in 4A the molecules are about as wide as the window,
+        and crystal diffusion may well be the slowest step; only uptake measurements (ZLC, volumetric) would settle it.</li>
+      <li>Macropore data measured for commercial 13X beads are assumed for 4A and 5A as well.</li>
+      <li>The voidage was measured in a 53 ml vessel with 4–7.5 mm grains. The wall makes it higher than in a 0.5 m column,
+        where randomly poured spheres give 0.36–0.42.</li>
+      <li>For 13X the Rosen length parameter drops to about 15 in corrected mode, where the asymptotic (erf) form is least accurate;
+        compare with the numerical curve.</li>
+      <li>Gas properties at 100 °C only, viscosities from CoolProp [12].</li>
     </ul>
   </section>
 
-  <section>
+  <section id="sources">
     <h2>Sources</h2>
+    <h3>Thesis references used here</h3>
+    <p class="note">Numbered as in the thesis.</p>
+    <ul class="refs numbered">
+      <li><b>[2]</b> Piekarski J., Dąbrowski T., Analiza uproszczonych równań dynamiki adsorpcji, Inżynieria Ekologiczna 24 (2011).</li>
+      <li><b>[3]</b> Paderewski M. L., Procesy adsorpcyjne w inżynierii chemicznej, WNT, Warszawa 1999.</li>
+      <li><b>[6]</b> Porównanie fizykochemicznych właściwości zeolitów syntetycznych typu 4A i NaY (pore volume of 4A).</li>
+      <li><b>[8]</b> Vasenkov S., Geir O., Kärger J., Gas diffusion in zeolite beds: PFG NMR evidence for different tortuosity factors in the
+        Knudsen and bulk regimes, Eur. Phys. J. E 12 (2003) 35–38, <a href="https://doi.org/10.1140/epjed/e2003-01-009-1">doi:10.1140/epjed/e2003-01-009-1</a>.</li>
+      <li><b>[9]</b> Chapman S., Cowling T. G., The Mathematical Theory of Non-Uniform Gases, Cambridge University Press.</li>
+      <li><b>[10]</b> Knudsen diffusion (Wikipedia).</li>
+      <li><b>[11]</b> Breitkopf C., Diffusion, lecture notes, Fritz Haber Institute (2008): D, D<sub>K</sub> and D&prime; in series.</li>
+      <li><b>[12]</b> CoolProp, thermophysical property library for Python.</li>
+      <li><b>[14]</b> zeo4.pl, characteristics of zeolite (clinoptilolite) data sheet.</li>
+      <li><b>[15]</b> Wanigarathna D. K. J. A., Gao J., Takanami T., Zhang Q., Liu B., Adsorption separation of R-22, R-32 and R-125 fluorocarbons
+        using 4A molecular sieve zeolite, ChemistrySelect 1 (2016), <a href="https://doi.org/10.1002/slct.201600689">doi:10.1002/slct.201600689</a>.</li>
+      <li><b>[16]</b> Elhussien A. A., Abdulazeez I., Alasiri H., Fouad W. A., Exploring zeolite potential for hydrofluorocarbon capture and recycling:
+        insights from molecular simulations, Microporous Mesoporous Mater. 384 (2025) 113442.</li>
+      <li><b>[17]</b> Wanigarathna D. K. J. A., Liu B., Gao J., Adsorption separation of R134a, R125 and R143a fluorocarbon mixtures using 13X and
+        surface-modified 5A zeolites, AIChE J. (2017), <a href="https://doi.org/10.1002/aic.15955">doi:10.1002/aic.15955</a>.</li>
+      <li><b>[20]</b> Su W. et al., Zeolite 13X particles with porous TiO₂ coating and Ag₂O nanoparticles as multi-functional filler materials for
+        face masks, Chem. Eng. J. 502 (2024) 157937.</li>
+      <li>Grain size, grain mass, bulk density of 4A and 13X: own measurements, thesis chapter 4.</li>
+    </ul>
+
+    <h3>Literature</h3>
     <ul class="refs">
-      <li>Rosen J. B., Kinetics of a fixed bed system for solid diffusion into spherical particles, J. Chem. Phys. 20 (1952) 387.</li>
-      <li>Glueckauf E., Theory of chromatography, part 10: formulae for diffusion into spheres, Trans. Faraday Soc. 51 (1955) 1540.</li>
-      <li>Paderewski M. L., Procesy adsorpcyjne w inżynierii chemicznej, WNT, Warszawa 1999.</li>
-      <li>Wakao N., Funazkri T., Effect of fluid dispersion coefficients on particle-to-fluid mass transfer coefficients in packed beds, Chem. Eng. Sci. 33 (1978) 1375.</li>
-      <li>Edwards M. F., Richardson J. F., Gas dispersion in packed beds, Chem. Eng. Sci. 23 (1968) 109.</li>
-      <li>Wanigarathna D. K. J. A. et al., Adsorption separation of R-22, R-32 and R-125 using 4A molecular sieve zeolite, ChemistrySelect 1 (2016).</li>
-      <li>Wanigarathna D. K. J. A. et al., Adsorption separation of R134a, R125 and R143a using 13X and surface-modified 5A zeolites, AIChE J. (2017).</li>
-      <li>Zeolite 4A and 13X bulk density and bed porosity: own measurements, thesis chapter 4.</li>
+      <li>Rosen J. B., Kinetics of a fixed bed system for solid diffusion into spherical particles, J. Chem. Phys. 20 (1952) 387–394.</li>
+      <li>Rosen J. B., General numerical solution for solid diffusion in fixed beds, Ind. Eng. Chem. 46 (1954) 1590–1594.</li>
+      <li>Glueckauf E., Theory of chromatography, part 10: formulae for diffusion into spheres and their application to chromatography,
+        Trans. Faraday Soc. 51 (1955) 1540–1551.</li>
+      <li>Wakao N., Funazkri T., Effect of fluid dispersion coefficients on particle-to-fluid mass transfer coefficients in packed beds,
+        Chem. Eng. Sci. 33 (1978) 1375–1384.</li>
+      <li>Edwards M. F., Richardson J. F., Gas dispersion in packed beds, Chem. Eng. Sci. 23 (1968) 109–123.</li>
+      <li>Ruthven D. M., Principles of Adsorption and Adsorption Processes, Wiley, New York 1984.</li>
+      <li>Kärger J., Ruthven D. M., Theodorou D. N., Diffusion in Nanoporous Materials, Wiley-VCH, Weinheim 2012.</li>
+      <li>Hu X., Mangano E., Friedrich D., Ahn H., Brandani S., Diffusion mechanism of CO₂ in 13X zeolite beads, Adsorption 20 (2014) 121–135,
+        <a href="https://doi.org/10.1007/s10450-013-9554-z">doi:10.1007/s10450-013-9554-z</a>.</li>
+      <li>Sircar S., Hufton J. R., Why does the linear driving force model for adsorption kinetics work?, Adsorption 6 (2000) 137–147,
+        <a href="https://doi.org/10.1023/A:1008965317983">doi:10.1023/A:1008965317983</a>.</li>
+      <li>Thommes M. et al., Physisorption of gases, with special reference to the evaluation of surface area and pore size distribution
+        (IUPAC Technical Report), Pure Appl. Chem. 87 (2015) 1051–1069, <a href="https://doi.org/10.1515/pac-2014-1117">doi:10.1515/pac-2014-1117</a>.</li>
+      <li>Bird R. B., Stewart W. E., Lightfoot E. N., Transport Phenomena, 2nd ed., Wiley, New York 2002.</li>
+      <li>Breck D. W., Zeolite Molecular Sieves: Structure, Chemistry and Use, Wiley, New York 1974.</li>
+      <li>Yancey A. D., Terian S. J., Shaw B. J., Bish T. M., Corbin D. R., Shiflett M. B., A review of fluorocarbon sorption on porous materials,
+        Microporous Mesoporous Mater. (2022) 111654, <a href="https://doi.org/10.1016/j.micromeso.2021.111654">doi:10.1016/j.micromeso.2021.111654</a>.</li>
     </ul>
   </section>
 </article>

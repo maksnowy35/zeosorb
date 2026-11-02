@@ -54,23 +54,29 @@ flowchart LR
 
 **Rosen solution** (linear isotherm, diffusion in spherical grains, external film):
 
-$$\frac{c}{c_0} = \frac{1}{2}\left[1 + \operatorname{erf}\left(\frac{\frac{3\tau'}{2\lambda'} - 1}{2\sqrt{\frac{1+5\psi}{5\lambda'}}}\right)\right], \qquad
-\lambda' = \frac{3 D' K H}{z\,w\,R^2}, \quad \psi = \frac{D' K}{R\,k_{c,g}}, \quad \tau' = \frac{2D'}{R^2}\left(t - \frac{H}{w}\right)$$
+```math
+\frac{c}{c_0} = \frac{1}{2}\left[1 + \mathrm{erf}\left(\frac{\frac{3\tau'}{2\lambda'} - 1}{2\sqrt{\frac{1+5\psi}{5\lambda'}}}\right)\right], \qquad
+\lambda' = \frac{3 D' K H}{z\,w\,R^2}, \quad \psi = \frac{D' K}{R\,k_{c,g}}, \quad \tau' = \frac{2D'}{R^2}\left(t - \frac{H}{w}\right)
+```
 
 **Grains** are binder-bound beads: the gas diffuses through the macropores (molecular and Knudsen diffusion in series,
 over the tortuosity) and adsorbs on the crystals on the way. For a linear isotherm that maps exactly onto Rosen's
 grain diffusion:
 
-$$K = \frac{K_a}{1-\varepsilon} + \varepsilon_M, \qquad K D' = \varepsilon_M D_p, \qquad
-\frac{1}{D_p} = \tau\left(\frac{1}{D} + \frac{1}{D_K}\right), \qquad D = 1.32\,\frac{\mu}{\rho}\ \text{(Chapman–Enskog)}$$
+```math
+K = \frac{K_a}{1-\varepsilon} + \varepsilon_M, \qquad K D' = \varepsilon_M D_p, \qquad
+\frac{1}{D_p} = \tau\left(\frac{1}{D} + \frac{1}{D_K}\right), \qquad D = 1.32\,\frac{\mu}{\rho}\ \text{(Chapman–Enskog)}
+```
 
-**Numerical model** (dimensionless, $\zeta = x/H$, $\theta = tw/H$, $\kappa = K/z$):
+**Numerical model** (dimensionless, $`\zeta = x/H`$, $`\theta = tw/H`$, $`\kappa = K/z`$):
 
-$$\frac{\partial c}{\partial \theta} = -\frac{\partial c}{\partial \zeta} + \frac{1}{Pe}\frac{\partial^2 c}{\partial \zeta^2} - \kappa \frac{\partial q}{\partial \theta}, \qquad
-\frac{\partial q}{\partial \theta} = St\,(c - q), \qquad k_{LDF} = \frac{15 D'}{R^2 (1 + 5\psi)}$$
+```math
+\frac{\partial c}{\partial \theta} = -\frac{\partial c}{\partial \zeta} + \frac{1}{Pe}\frac{\partial^2 c}{\partial \zeta^2} - \kappa \frac{\partial q}{\partial \theta}, \qquad
+\frac{\partial q}{\partial \theta} = St\,(c - q), \qquad k_{LDF} = \frac{15 D'}{R^2 (1 + 5\psi)}
+```
 
 Finite volumes with a Koren limiter, Danckwerts inlet, LSODA with a banded Jacobian, 0.5–1.5 s per run.
-With that $k_{LDF}$ the numerical model has exactly the same second moment as the Rosen solution, so without
+With that $`k_{LDF}`$ the numerical model has exactly the same second moment as the Rosen solution, so without
 dispersion the two must agree. The test suite checks it at 5 %, 50 % and 95 % (within 1.5 %) and checks the mass balance.
 Axial dispersion comes from Edwards–Richardson; the Rosen solution ignores it.
 
@@ -96,11 +102,11 @@ can still be reproduced. R22 on 4A, 30 kg/h:
 
 | | As in the thesis | Corrected | Effect |
 |---|---|---|---|
-| Henry constant in the Rosen groups | $K_a = a_v/c^*$ per bed volume, next to $z = \varepsilon/(1-\varepsilon)$: the bed gets only $(1-\varepsilon)$ of its capacity | per grain volume, $K = K_a/(1-\varepsilon) + \varepsilon_M$ | stoichiometric time 51 min → 2.3 h |
-| Voidage | $(\rho_p-\rho_n)/\rho_p = 0.633$, which counts the zeolite micropores too | between the grains only, $1 - \rho_n/(m_k/V_k) = 0.496$, same measurements | gas velocity +28 % |
-| Transport into the grain | Knudsen in the 4–9 Å window (pore size converted with 10⁻⁸ m/Å), no tortuosity | diffusion through the binder macropores, $K D' = \varepsilon_M D_p$, τ = 2.6 | $K D'$ 1.5·10⁻⁴ → 9·10⁻⁷ m²/s |
+| Henry constant in the Rosen groups | $`K_a = a_v/c^*`$ per bed volume, next to $`z = \varepsilon/(1-\varepsilon)`$: the bed gets only $`(1-\varepsilon)`$ of its capacity | per grain volume, $`K = K_a/(1-\varepsilon) + \varepsilon_M`$ | stoichiometric time 51 min → 2.3 h |
+| Voidage | $`(\rho_p-\rho_n)/\rho_p = 0.633`$, which counts the zeolite micropores too | between the grains only, $`1 - \rho_n/(m_k/V_k) = 0.496`$, same measurements | gas velocity +28 % |
+| Transport into the grain | Knudsen in the 4–9 Å window (pore size converted with 10⁻⁸ m/Å), no tortuosity | diffusion through the binder macropores, $`K D' = \varepsilon_M D_p`$, τ = 2.6 | $`K D'`$ 1.5·10⁻⁴ → 9·10⁻⁷ m²/s |
 | Molecular diffusion | hard-sphere kinetic theory, two versions of the prefactor in the text and in Tab. 8 | Chapman–Enskog from the viscosity, ρD/μ = 1.32 | 8.5·10⁻⁶ → 1.0·10⁻⁵ m²/s |
-| Film coefficient | Sh = 0.395 Re^0.54 Sc^0.33 with a channel diameter from the micropore surface (Re ≈ 10⁻⁴) | Wakao–Funazkri with the grain diameter | $k_{c,g}$ 0.88 → 0.015 m/s, still a minor resistance |
+| Film coefficient | Sh = 0.395 Re^0.54 Sc^0.33 with a channel diameter from the micropore surface (Re ≈ 10⁻⁴) | Wakao–Funazkri with the grain diameter | $`k_{c,g}`$ 0.88 → 0.015 m/s, still a minor resistance |
 | E(c/c₀) | lookup table (E = −1.2 for 5 %) | exact inverse error function | E = −1.163 |
 
 ![Thesis vs corrected](docs/img/breakthrough_modes.png)

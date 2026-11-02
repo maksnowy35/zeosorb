@@ -59,6 +59,17 @@ class Curves(BaseModel):
     ldf: Curve | None = None
 
 
+class AuditRow(BaseModel):
+    group: str
+    symbol: str
+    label: str
+    unit: str
+    thesis: float | None
+    corrected: float | None
+    thesis_source: str
+    corrected_source: str
+
+
 class BreakthroughResponse(BaseModel):
     request: BreakthroughRequest
     equilibrium: dict[str, float]
@@ -74,6 +85,7 @@ class BreakthroughResponse(BaseModel):
     curves: Curves
     profiles: Profiles | None = None
     solver: SolverInfo | None = None
+    audit: list[AuditRow] = []   # every intermediate value in both modes
 
 
 class SeparationRequest(BedParams):

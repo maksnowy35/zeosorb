@@ -5,10 +5,10 @@ import numpy as np
 from fastapi import APIRouter, HTTPException, Query
 
 from . import __version__
-from .core import ldf, materials, pipeline, rosen, separation
+from .core import audit, ldf, materials, pipeline, rosen, separation
 from .core.constants import BED_HEIGHT, COLUMN_DIAMETER
 from .schemas import (
-    BedParams, BreakthroughRequest, BreakthroughResponse, Curve, Curves, Profiles,
+    AuditRow, BedParams, BreakthroughRequest, BreakthroughResponse, Curve, Curves, Profiles,
     SeparationOption, SeparationRequest, SeparationResponse, SolverInfo, SweepRequest,
     SweepResponse, Times,
 )
@@ -62,7 +62,8 @@ def get_materials():
 @router.post("/breakthrough", response_model=BreakthroughResponse)
 def breakthrough(req: BreakthroughRequest):
     _check([req.refrigerant], req.zeolite)
-    res = _run(_bed_input(req, req.refrigerant, req.zeolite, (req.threshold,)))
+    inp = _bed_input(req, req.refrigerant, req.zeolite, (req.threshold,))
+    res = _run(inp)
     bed = res["bed"]
     t_end = 1.6 * res["t_stoich"]
 
@@ -106,6 +107,7 @@ def breakthrough(req: BreakthroughRequest):
         curves=curves,
         profiles=profiles,
         solver=solver,
+        audit=[AuditRow(**row) for row in audit.rows(inp, req.threshold)],
     )
 
 

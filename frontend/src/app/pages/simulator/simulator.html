@@ -150,23 +150,50 @@
       </section>
 
       <details class="numbers">
-        <summary>Every intermediate value</summary>
-        @for (g of details(); track g.group) {
-          <table>
-            <caption>{{ g.group }}</caption>
-            <tbody>
-              @for (row of g.rows; track row.symbol) {
+        <summary>Every intermediate value, thesis and corrected side by side</summary>
+        <p class="note">
+          The column of the mode you are in is highlighted, × is corrected over thesis.
+          [n] are references of the thesis, the rest is listed on the <a routerLink="/model" fragment="sources">model page</a>,
+          and what changed and why is in the <a routerLink="/model" fragment="audit">thesis audit</a>.
+        </p>
+        @for (g of auditGroups(); track g.group) {
+          <div class="table-wrap">
+            <table class="audit">
+              <caption>{{ g.group }}</caption>
+              <thead>
                 <tr>
-                  <th scope="row">{{ row.label }}</th>
-                  <td class="sym">{{ row.symbol }}</td>
-                  <td class="val">{{ num(row.value) }}</td>
-                  <td class="unit">{{ row.unit }}</td>
+                  <th scope="col">Quantity</th>
+                  <th scope="col" class="sym"><span class="sr">Symbol</span></th>
+                  <th scope="col" class="val" [class.on]="d.request.mode === 'thesis'">Thesis</th>
+                  <th scope="col" class="val" [class.on]="d.request.mode === 'corrected'">Corrected</th>
+                  <th scope="col" class="ratio"><span class="sr">Ratio</span></th>
+                  <th scope="col" class="unit">Unit</th>
+                  <th scope="col" class="src">Source</th>
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (row of g.rows; track row.symbol) {
+                  <tr>
+                    <th scope="row">{{ row.label }}</th>
+                    <td class="sym" [innerHTML]="formula(row.symbol)"></td>
+                    <td class="val" [class.on]="d.request.mode === 'thesis'">{{ value(row.thesis, row.unit) }}</td>
+                    <td class="val" [class.on]="d.request.mode === 'corrected'">{{ value(row.corrected, row.unit) }}</td>
+                    <td class="ratio">{{ ratio(row) }}</td>
+                    <td class="unit">{{ row.unit === 's' ? '' : row.unit }}</td>
+                    <td class="src">
+                      @if (row.thesis_source === row.corrected_source) {
+                        <span [innerHTML]="formula(row.thesis_source)"></span>
+                      } @else {
+                        <span><i>thesis</i> <span [innerHTML]="formula(row.thesis_source)"></span></span>
+                        <span><i>corrected</i> <span [innerHTML]="formula(row.corrected_source)"></span></span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         }
-        <p class="note">Film coefficient: {{ d.film_correlation }}.</p>
         @if (d.solver; as s) {
           <p class="note">
             LDF solver: {{ s.n_cells }} cells, {{ s.n_rhs }} right-hand side evaluations,

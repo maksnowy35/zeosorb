@@ -41,3 +41,13 @@ export function downloadCsv(filename: string, header: string[], rows: (number | 
   a.click();
   URL.revokeObjectURL(url);
 }
+
+/** "K_a", "Re^0.54" -> HTML with <sub>/<sup>, for symbols and short formulas in tables. */
+export function formula(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/_([A-Za-z0-9]+(?:,[A-Za-z0-9]+)?)/g, '<sub>$1</sub>')
+    .replace(/\^([0-9./]+)/g, '<sup>$1</sup>');
+}

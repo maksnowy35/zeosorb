@@ -70,6 +70,17 @@ export interface Profiles {
   q: number[][];
 }
 
+export interface AuditRow {
+  group: string;
+  symbol: string;
+  label: string;
+  unit: string;
+  thesis: number | null;
+  corrected: number | null;
+  thesis_source: string;
+  corrected_source: string;
+}
+
 export interface BreakthroughResponse {
   request: BreakthroughRequest;
   equilibrium: Record<string, number>;
@@ -85,6 +96,7 @@ export interface BreakthroughResponse {
   curves: { rosen: Curve | null; ldf: Curve | null };
   profiles: Profiles | null;
   solver: { n_cells: number; n_rhs: number; runtime_ms: number; stanton: number; peclet: number; kappa: number } | null;
+  audit: AuditRow[];
 }
 
 export interface MatrixCell {

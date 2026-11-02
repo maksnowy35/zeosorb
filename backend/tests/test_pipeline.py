@@ -71,3 +71,17 @@ def test_spreading_budget_consistent_with_rosen():
     k = bed.kappa
     rosen_var = 2 * (1 + 5 * bed.psi) / (5 * bed.lam) * (k / (1 + k)) ** 2
     assert res["spreading"]["mass_transfer"] == pytest.approx(rosen_var, rel=1e-9)
+
+
+def test_audit_rows_cover_both_modes():
+    from app.core import audit
+
+    inp = pipeline.BedInput(refrigerant="R22", zeolite="4A", mode="corrected", tortuosity=4.0)
+    rows = {r["symbol"]: r for r in audit.rows(inp, 0.05)}
+    # thesis column = thesis mode as it is, whatever the user set in the other mode
+    assert rows["τ"]["thesis"] == 1.0 and rows["τ"]["corrected"] == 4.0
+    assert rows["D'"]["thesis"] == pytest.approx(2.7e-6, rel=0.02)
+    assert rows["D_p"]["thesis"] is None and rows["D_p"]["corrected"] > 0
+    assert rows["ε"]["thesis"] == 0.633 and rows["ε"]["corrected"] == pytest.approx(0.496, abs=0.002)
+    assert rows["t_b"]["corrected"] == pytest.approx(run("corrected", tortuosity=4.0)["breakthrough"]["0.05"])
+    assert all(r["thesis_source"] and r["corrected_source"] for r in rows.values())

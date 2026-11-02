@@ -1,24 +1,20 @@
 import { KeyValuePipe } from '@angular/common';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, debounceTime, map, of, startWith, switchMap } from 'rxjs';
 
 import { Api } from '../../core/api';
-import { downloadCsv, duration, eventValue, num, pct } from '../../core/format';
-import { BreakthroughRequest, BreakthroughResponse, Mode, Model, SweepParameter, SweepResponse } from '../../core/models';
+import { downloadCsv, duration, eventValue, formula, num, pct } from '../../core/format';
+import {
+  AuditRow, BreakthroughRequest, BreakthroughResponse, Mode, Model, SweepParameter, SweepResponse,
+} from '../../core/models';
 import { INK, refColor, SIGNAL, STEEL } from '../../core/palette';
 import { LineChart, Marker, Series } from '../../shared/line-chart';
 import { ColumnView } from './column-view';
 
 type Result<T> = { state: 'loading' } | { state: 'ok'; data: T } | { state: 'error'; message: string };
 
-interface DetailRow {
-  label: string;
-  symbol: string;
-  value: number;
-  unit: string;
-}
 
 const SWEEPS: Record<SweepParameter, { label: string; unit: string; start: number; stop: number }> = {
   mass_flow: { label: 'Mass flow', unit: 'kg/h', start: 5, stop: 200 },
@@ -36,7 +32,7 @@ function errorMessage(err: { error?: { detail?: unknown }; status?: number }): s
 
 @Component({
   selector: 'app-simulator',
-  imports: [LineChart, ColumnView, KeyValuePipe],
+  imports: [LineChart, ColumnView, KeyValuePipe, RouterLink],
   templateUrl: './simulator.html',
   styleUrl: './simulator.scss',
 })
@@ -45,6 +41,7 @@ export class Simulator {
   private route = inject(ActivatedRoute);
 
   readonly duration = duration;
+  readonly formula = formula;
   readonly num = num;
   readonly pct = pct;
   readonly refColor = refColor;
@@ -190,50 +187,28 @@ export class Simulator {
     return [{ x: current[this.sweepParam()], label: 'current', color: SIGNAL }];
   });
 
-  details = computed<{ group: string; rows: DetailRow[] }[]>(() => {
-    const d = this.data();
-    if (!d) return [];
-    return [
-      {
-        group: 'Equilibrium',
-        rows: [
-          { label: 'adsorbed amount at 0.8 bar', symbol: 'q', value: d.equilibrium['q'], unit: 'mol/kg' },
-          { label: 'gas density = equilibrium concentration', symbol: 'c*', value: d.equilibrium['c_star'], unit: 'kg/m³' },
-          { label: 'adsorbed mass per bed volume', symbol: 'a_v', value: d.equilibrium['av'], unit: 'kg/m³' },
-          { label: 'Henry constant', symbol: 'K_a', value: d.equilibrium['Ka'], unit: '–' },
-        ],
-      },
-      {
-        group: 'Diffusion',
-        rows: [
-          { label: 'molecular, kinetic theory', symbol: 'D', value: d.diffusion['D'], unit: 'm²/s' },
-          { label: 'Knudsen', symbol: 'D_K', value: d.diffusion['DK'], unit: 'm²/s' },
-          { label: 'effective, in the grain', symbol: "D'", value: d.diffusion['D_eff'], unit: 'm²/s' },
-          { label: 'axial dispersion', symbol: 'D_ax', value: d.dispersion['D_ax'], unit: 'm²/s' },
-        ],
-      },
-      {
-        group: 'Flow and film',
-        rows: [
-          { label: 'velocity in the empty column', symbol: 'w_k', value: d.hydraulics['w_k'], unit: 'm/s' },
-          { label: 'velocity between grains', symbol: 'w', value: d.hydraulics['w'], unit: 'm/s' },
-          { label: 'Reynolds', symbol: 'Re', value: d.film['Re'], unit: '–' },
-          { label: 'Schmidt', symbol: 'Sc', value: d.film['Sc'], unit: '–' },
-          { label: 'Sherwood', symbol: 'Sh', value: d.film['Sh'], unit: '–' },
-          { label: 'film mass transfer coefficient', symbol: 'k_c,g', value: d.film['kcg'], unit: 'm/s' },
-        ],
-      },
-      {
-        group: 'Model parameters',
-        rows: [
-          { label: 'Rosen length parameter', symbol: "λ'", value: d.rosen['lambda'], unit: '–' },
-          { label: 'Rosen mass transfer resistance', symbol: 'ψ', value: d.rosen['psi'], unit: '–' },
-          { label: 'Péclet number of the bed', symbol: 'Pe', value: d.dispersion['Pe'], unit: '–' },
-          { label: 'LDF coefficient', symbol: 'k_LDF', value: d.dispersion['k_ldf'], unit: '1/s' },
-        ],
-      },
-    ];
+  /** audit rows from the API grouped as they come (Equilibrium, Bed, Diffusion, ...) */
+  auditGroups = computed<{ group: string; rows: AuditRow[] }[]>(() => {
+    const groups: { group: string; rows: AuditRow[] }[] = [];
+    for (const row of this.data()?.audit ?? []) {
+      const last = groups[groups.length - 1];
+      if (last?.group === row.group) last.rows.push(row);
+      else groups.push({ group: row.group, rows: [row] });
+    }
+    return groups;
   });
+
+  value(v: number | null, unit: string): string {
+    return unit === 's' ? duration(v) : num(v);
+  }
+
+  /** corrected / thesis, only where the two differ noticeably */
+  ratio(row: AuditRow): string {
+    if (row.thesis === null || row.corrected === null || row.thesis === 0) return '';
+    const r = row.corrected / row.thesis;
+    if (Math.abs(r - 1) < 0.01) return '';
+    return r >= 0.1 && r < 100 ? `×${r.toPrecision(2)}` : `×${num(r, 2)}`;
+  }
 
   constructor() {
     const q = this.route.snapshot.queryParamMap;

@@ -154,6 +154,89 @@
     color: var(--steel);
     width: 4.5rem;
   }
+
+  .table-wrap {
+    position: relative;
+    overflow-x: auto;
+  }
+
+  .audit {
+    min-width: 46rem;
+    table-layout: fixed;
+
+    th[scope='row'] {
+      width: 12rem;
+    }
+
+    thead th:first-child {
+      width: 12rem;
+    }
+
+    @media (max-width: 760px) {
+      min-width: 40rem;
+
+      th[scope='row'],
+      thead th:first-child {
+        width: 8.5rem;
+      }
+    }
+
+    .sym {
+      width: 3.6rem;
+    }
+
+    .val {
+      width: 6.2rem;
+    }
+
+    .unit {
+      width: 3.8rem;
+    }
+
+    thead th {
+      font-size: 0.8rem;
+      color: var(--steel);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .val.on {
+      background: rgba(29, 42, 51, 0.05);
+      font-weight: 600;
+    }
+
+    .ratio {
+      width: 4.6rem;
+      color: var(--signal);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .src {
+      font-size: 0.8rem;
+      color: var(--steel);
+
+      > span {
+        display: block;
+      }
+
+      i {
+        font-style: normal;
+        font-weight: 600;
+        margin-right: 0.25rem;
+      }
+    }
+  }
+
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
 }
 
 .bed {

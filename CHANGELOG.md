@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.1.0]
+
+### Added
+- **Feed line** (`POST /api/v1/feed`, page *Feed line*): two-phase storage tank (vapour or liquid withdrawal, ambient
+  gain, heater), isenthalpic reducer, heated or cooled pipe segments (jacket, electric trace, insulated, bare) with
+  Gnielinski / Hausen, Gungor-Winterton and Shah coefficients and Churchill friction; campaign over hours; fractionation
+  of zeotropic blends; capacity and viscosity against feed temperature; findings
+- `POST /api/v1/feed/solve`: jacket temperature or trace power for a target temperature at the adsorber
+- **Cycle** (`POST /api/v1/cycle`, page *Cycle*): two beds, non-isothermal, extended Langmuir with temperature
+  dependence, LDF kinetics from the corrected grain model (macropores, local isotherm slope), shared feed header,
+  vacuum source with a floor, purge, jackets limited by radial conduction; setpoints as controller targets or step
+  transitions; cyclic steady state with extrapolation; KPIs, step table and findings
+- step presets: a typical 10-step two-bed sequence and a 4-step Skarstrom cycle (`app/data/cycles.json`)
+- temperature-dependent isotherms anchored to the thesis points (`app/data/isotherms.json`)
+- CoolProp as a dependency; figures for the feed line and the cycle
+
+### Fixed
+- trace heating that overheats the gas no longer crashes the setting solver
+
+
 ## [1.0.0]
 
 ### Added

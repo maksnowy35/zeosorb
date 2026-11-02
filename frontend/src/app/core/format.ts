@@ -25,7 +25,7 @@ function superscript(n: number): string {
 }
 
 export function pct(v: number, digits = 0): string {
-  return `${(v * 100).toFixed(digits)} %`;
+  return `${(v * 100).toFixed(digits)}\u00a0%`;
 }
 
 export function eventValue(e: Event): number {

@@ -18,7 +18,7 @@ from matplotlib.colors import LinearSegmentedColormap  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
-from app.core import ldf, pipeline, rosen  # noqa: E402
+from app.core import cycle, feedline, fluids, ldf, pipeline, rosen  # noqa: E402
 
 OUT = ROOT / "docs" / "img"
 PAPER, INK, STEEL, FROST, OCHRE, SIGNAL = "#eef1ef", "#1d2a33", "#5b6b76", "#1a78bd", "#c8a24a", "#b4452f"
@@ -119,8 +119,74 @@ def bed_loading_gif() -> None:
     plt.close(fig)
 
 
+def feed_line_profiles() -> None:
+    """R410A from a tank at 20 C, 30 kg/h, reducer 2.5 bar, 40 mm x 3 m + 90 mm x 2 m."""
+    fl = fluids.fluid("R410A")
+    s = fl.sat_T(293.15)
+
+    def segs(t1: float, t2: float = 373.15):
+        return [feedline.Segment("Segment 1", 0.04, 3.0, heating=feedline.Heating(kind="medium", T_medium=t1)),
+                feedline.Segment("Segment 2", 0.09, 2.0, heating=feedline.Heating(kind="medium", T_medium=t2))]
+
+    cases = [
+        ("vapour drawn off, jackets 90 / 100 °C", s.p, s.h_v, segs(363.15), INK, "-"),
+        ("liquid drawn off, jackets 90 / 100 °C", fl.p_bubble(293.15), s.h_l, segs(363.15), OCHRE, "-"),
+    ]
+    value, _, _ = feedline.solve_setting("R410A", 30, s.p, s.h_v, 2.5e5, segs(363.15), 0, 373.15, 273.15, 473.15)
+    cases.append((f"vapour, segment 1 at {value - 273.15:.0f} °C", s.p, s.h_v, segs(value), FROST, "-"))
+
+    fig, ax = plt.subplots(figsize=(7.2, 4.2), dpi=150)
+    for label, p, h, sg, color, ls in cases:
+        r = feedline.simulate("R410A", 30, p, h, 2.5e5, sg)
+        ax.plot(r.z, r.T - 273.15, color=color, lw=2, ls=ls, label=label)
+    ax.plot(r.z, r.T_dew - 273.15, color=STEEL, lw=1.2, ls=(0, (5, 3)), label="dew point at 2.5 bar")
+    ax.axvline(3.0, color=STEEL, lw=0.8, ls=":")
+    ax.axhline(100, color=SIGNAL, lw=0.8, ls=":")
+    ax.text(0.05, 103, "target 100 °C", color=SIGNAL, fontsize=9)
+    ax.text(1.5, -55, "40 mm", color=STEEL, ha="center", fontsize=9)
+    ax.text(4.0, -55, "90 mm", color=STEEL, ha="center", fontsize=9)
+    ax.set_xlim(0, 5)
+    ax.set_ylim(-60, 115)
+    ax.set_xlabel("distance from the reducer [m]")
+    ax.set_ylabel("gas temperature [°C]")
+    ax.set_title("R410A, 30 kg/h: the wide segment barely heats", loc="left", color=INK, fontsize=11)
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=2, fontsize=8.5)
+    fig.tight_layout()
+    fig.savefig(OUT / "feed_line.png")
+    plt.close(fig)
+
+
+def cycle_traces() -> None:
+    steps = cycle.steps_from_table(cycle.presets()["two_bed_10_step"]["steps"])
+    res = cycle.run(cycle.BedSpec(), cycle.Plant(), steps)
+    t = np.array(res["series"]["t"]) / 3600
+    fig, (ax_p, ax_t) = plt.subplots(2, 1, figsize=(7.2, 4.6), dpi=150, sharex=True)
+    for b, color in (("A", INK), ("B", FROST)):
+        ax_p.plot(t, [cycle.barg(v) for v in res["series"][b]["P"]], color=color, lw=1.8, label=f"bed {b}")
+    for s in res["steps"]:
+        for ax in (ax_p, ax_t):
+            ax.axvline(s["t_start"] / 3600, color=STEEL, lw=0.5, alpha=0.4)
+        if s["control_bed"] and s["setpoint_barg"] is not None:
+            ax_p.plot([s["t_start"] / 3600, (s["t_start"] + s["duration"]) / 3600], [s["setpoint_barg"]] * 2,
+                      color=SIGNAL, lw=1.2, ls=(0, (4, 2)))
+    ax_p.axhline(cycle.barg(cycle.Plant().vacuum_ultimate), color=STEEL, lw=0.8, ls=":")
+    ax_p.set_ylabel("bar g")
+    ax_p.legend(loc="upper right", fontsize=8.5)
+    ax_p.set_title("10-step cycle at steady state: dashed red = step setpoints", loc="left", color=INK, fontsize=11)
+    for k, color in (("T_top", SIGNAL), ("T_mid", INK), ("T_bottom", FROST)):
+        ax_t.plot(t, np.array(res["series"]["A"][k]) - 273.15, color=color, lw=1.6, label=k.split("_")[1])
+    ax_t.set_ylabel("bed A [°C]")
+    ax_t.set_xlabel("t [h]")
+    ax_t.legend(loc="upper right", fontsize=8.5, ncol=3)
+    fig.tight_layout()
+    fig.savefig(OUT / "cycle.png")
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     breakthrough_modes()
     bed_loading_gif()
+    feed_line_profiles()
+    cycle_traces()
     print("written to", OUT)

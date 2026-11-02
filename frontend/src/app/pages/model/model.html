@@ -154,14 +154,76 @@
   </section>
 
   <section>
+    <h2>Feeding the column from a storage tank</h2>
+    <p>Refrigerant comes in returnable tanks that hold liquid and vapour at the saturation pressure. The
+      <a routerLink="/feed">feed line page</a> follows it from the tank to the adsorber.</p>
+    <ol class="chain">
+      <li>
+        <h3>Tank</h3>
+        <p>Liquid, vapour and steel at one temperature, pressure from the saturation (bubble) curve. Every kilogram of vapour
+          drawn off is evaporated inside the tank, so an unheated tank cools and its pressure falls; drawing liquid only costs
+          the vapour that refills the freed volume. For a blend the vapour is richer in the volatile components, so vapour
+          withdrawal shifts the composition of the feed (bubble point of the true mixture in CoolProp).</p>
+        <p class="eq">(<var>m<sub>l</sub> c<sub>l</sub></var> + <var>m<sub>w</sub> c<sub>w</sub></var>) d<var>T</var>/d<var>t</var> = &minus;<var>&#7745;</var> &Delta;<var>h</var> + <var>UA</var>(<var>T</var><sub>amb</sub> &minus; <var>T</var>) + <var>Q</var><sub>heater</sub></p>
+      </li>
+      <li>
+        <h3>Reducer</h3>
+        <p>Isenthalpic. Saturated vapour comes out superheated but much colder (Joule&ndash;Thomson); saturated liquid comes
+          out as a cold two-phase mixture that the line has to evaporate.</p>
+      </li>
+      <li>
+        <h3>Pipe segments</h3>
+        <p>Steady energy and momentum balances marched along each segment with properties from CoolProp at (<var>p</var>, <var>h</var>).
+          Heat comes from a water or oil jacket, an electric trace, or the surroundings through insulation.</p>
+        <p class="eq"><var>&#7745;</var> d<var>h</var>/d<var>z</var> = <var>q</var>&prime;(<var>z</var>) &nbsp;&nbsp; d<var>p</var>/d<var>z</var> = &minus;<var>f G</var>² / (2<var>D</var>&rho;)</p>
+        <p>Inside coefficient: Gnielinski in turbulent flow, Hausen for developing laminar flow, Gungor&ndash;Winterton for
+          evaporation (with the low-Froude correction for stratified flow), Shah for condensation; Churchill friction factor.
+          In a wide pipe at low flow the coefficient drops to a few W/m²K, so a 90 mm segment changes the gas temperature
+          far less than its length suggests.</p>
+      </li>
+      <li>
+        <h3>What temperature to aim for</h3>
+        <p>The gas has to stay clear of its dew point, otherwise droplets reach the hot zeolite. Above that, colder gas loads the
+          bed further (Langmuir isotherm below). Viscosity follows the temperature and changes the bed's Reynolds number and
+          pressure drop only in proportion, so it is a consequence of the choice, not a criterion of its own.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>The two-bed cycle</h2>
+    <p>The <a routerLink="/cycle">cycle page</a> runs two beds through a step table: fill, adsorb, blow down, evacuate, purge.
+      Each bed is split into cells along its height and solved as a non-isothermal column:</p>
+    <ul>
+      <li>Extended Langmuir isotherm with van 't Hoff temperature dependence, anchored to the thesis point of every pair
+        (q at 0.8 bar and 100 °C). Saturation capacity from the micropore volume and the liquid molar volume, heat of
+        adsorption 1.6 times the heat of vaporisation &ndash; estimates until isotherms at several temperatures are measured.</li>
+      <li>Linear driving force with the macropore model of the corrected mode,
+        <var>k<sub>i</sub></var> = 15&epsilon;<sub>M</sub><var>D<sub>p</sub></var> / (<var>R</var>²<var>K<sub>i</sub></var>), where
+        <var>K<sub>i</sub></var> = &rho;<sub>p</sub><var>q<sub>i</sub></var>*/<var>c<sub>i</sub></var> follows the local slope of the isotherm
+        and <var>D<sub>p</sub></var> the local temperature and pressure. The gas hold-up is the space between the grains plus their macropores.</li>
+      <li>Pressure uniform along the bed but changing in time; the gas flow between cells follows from the mass balance.</li>
+      <li>Energy balance with the heat of adsorption and a jacket. The jacket reaches the packing through the bed-to-wall film
+        and the radial conduction of the packing in series, <var>U</var> = 1 / (1/<var>h<sub>w</sub></var> + <var>R</var>/(2.89 <var>k</var>)), which is
+        what makes a wide bed slow to heat.</li>
+      <li>One feed header for both beds: a bed that fills draws most of the feed and starves the one already adsorbing.
+        Vacuum source with a pumping speed and a lowest reachable pressure; purge with heated weak component.</li>
+      <li>A pressure setpoint is either a controller target (the step runs its time) or the condition that ends the step. The
+        cycle is repeated until it no longer changes; the report describes that cyclic steady state.</li>
+    </ul>
+  </section>
+
+  <section>
     <h2>What the model leaves out</h2>
     <ul>
-      <li>Only one refrigerant at a time. Mixtures need competitive isotherms (IAST or multicomponent Langmuir); the
-        <a routerLink="/separation">separation page</a> overlays single curves as a first estimate. Yancey et al. (2022) review
-        refrigerant isotherms on zeolites and other sorbents.</li>
-      <li>A linear isotherm through one point at 0.8 bar. Near saturation the real isotherm is curved and the front self-sharpens.</li>
-      <li>Constant temperature. Heat of adsorption warms the bed and shortens the breakthrough in practice; at high concentrations
+      <li>The breakthrough pages (simulator, compare, separation) use one refrigerant at a time. Mixtures need competitive isotherms
+        (IAST or multicomponent Langmuir); the <a routerLink="/separation">separation page</a> overlays single curves as a first
+        estimate. Yancey et al. (2022) review refrigerant isotherms on zeolites and other sorbents.</li>
+      <li>There, a linear isotherm through one point at 0.8 bar. Near saturation the real isotherm is curved and the front self-sharpens.</li>
+      <li>There, a constant temperature. Heat of adsorption warms the bed and shortens the breakthrough in practice; at high concentrations
         the uptake of zeolite beads can become limited by heat removal rather than diffusion (Hu et al. 2014).</li>
+      <li>The cycle model drops these three (extended Langmuir, energy balance), but its isotherm parameters are estimates and it has
+        competition without ideal adsorbed solution theory.</li>
       <li>An undiluted feed. Rosen and the LDF model are trace-component theories with a constant gas velocity. With pure refrigerant
         the gas slows down as it is adsorbed, and the flux into the macropores is Knudsen plus viscous flow rather than diffusion
         through a carrier gas. Treat the shape of the front as indicative; the stoichiometric time does not depend on it.</li>
@@ -172,7 +234,9 @@
         where randomly poured spheres give 0.36–0.42.</li>
       <li>For 13X the Rosen length parameter drops to about 15 in corrected mode, where the asymptotic (erf) form is least accurate;
         compare with the numerical curve.</li>
-      <li>Gas properties at 100 °C only, viscosities from CoolProp [12].</li>
+      <li>Pipe flow of blends uses CoolProp's pseudo-pure fluids, so the glide of zeotropic blends inside the evaporating section
+        is approximated; the dew point check uses the true mixture.</li>
+      <li>The breakthrough pages take gas properties at 100 °C only, viscosities from CoolProp [12].</li>
     </ul>
   </section>
 
@@ -223,6 +287,16 @@
       <li>Breck D. W., Zeolite Molecular Sieves: Structure, Chemistry and Use, Wiley, New York 1974.</li>
       <li>Yancey A. D., Terian S. J., Shaw B. J., Bish T. M., Corbin D. R., Shiflett M. B., A review of fluorocarbon sorption on porous materials,
         Microporous Mesoporous Mater. (2022) 111654, <a href="https://doi.org/10.1016/j.micromeso.2021.111654">doi:10.1016/j.micromeso.2021.111654</a>.</li>
+      <li>Bell I. H., Wronski J., Quoilin S., Lemort V., Pure and pseudo-pure fluid thermophysical property evaluation and the open-source
+        thermophysical property library CoolProp, Ind. Eng. Chem. Res. 53 (2014) 2498–2508.</li>
+      <li>Gnielinski V., New equations for heat and mass transfer in turbulent pipe and channel flow, Int. Chem. Eng. 16 (1976) 359–368.</li>
+      <li>Gungor K. E., Winterton R. H. S., Simplified general correlation for saturated flow boiling, Chem. Eng. Res. Des. 65 (1987) 148–156.</li>
+      <li>Shah M. M., A general correlation for heat transfer during film condensation inside pipes, Int. J. Heat Mass Transfer 22 (1979) 547–556.</li>
+      <li>Churchill S. W., Friction-factor equation spans all fluid-flow regimes, Chem. Eng. 84 (1977) 91–92.</li>
+      <li>Ruthven D. M., Farooq S., Knaebel K. S., Pressure Swing Adsorption, VCH, New York 1994.</li>
+      <li>Savitz S. et al., Adsorption of hydrofluorocarbons HFC-134 and HFC-134a on X and Y zeolites: effect of ion-exchange on
+        selectivity and heat of adsorption, J. Phys. Chem. B 103 (1999) 8283 &ndash; about six molecules per supercage at saturation,
+        a check on the estimated capacities.</li>
     </ul>
   </section>
 </article>
